@@ -6,12 +6,12 @@ File: scss
 */
 
 @import '../variable';
-$themecolor: #1976d2;
-$themecolor-dark: #028ee1;
-$topbar: #1976d2;
+$themecolor: #2563EB;
+$themecolor-dark: #1D4ED8;
+$topbar: #1B2A4A;
 $topbar-alt: #ffffff;
-$themecolor-alt: #26c6da;
-$sidebar-icons: #a6b7bf; 
+$themecolor-alt: #10B981;
+$sidebar-icons: #94A3B8;
 
 /*******************
 /*Top bar
@@ -22,15 +22,15 @@ $sidebar-icons: #a6b7bf;
     .navbar-header{
         background: $topbar-alt;
     }
-    
-    
+
+
     .top-navbar .navbar-header .navbar-brand .light-logo{
         display: none;
         color:rgba(255, 255, 255, 0.8);
     }
     .navbar-light .navbar-nav .nav-item > {
         a.nav-link {
-           
+
             color: $white!important;
             &:hover,
             &:focus {
@@ -129,14 +129,14 @@ a.link {
 *******************/
 
 .label-themecolor{
-    background:$themecolor; 
+    background:$themecolor;
 }
 
 .sidebar-nav>ul>li.active>a {
     color: $themecolor;
     border-color: $themecolor;
     i {
-       color: $themecolor; 
+       color: $themecolor;
     }
 }
 
@@ -146,7 +146,7 @@ a.link {
       color: $themecolor;
       i {
         color: $themecolor;
-      }    
+      }
     }
 }
 

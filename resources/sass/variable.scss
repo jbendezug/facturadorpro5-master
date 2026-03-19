@@ -7,33 +7,33 @@ File: scss
 // Variables
 
 
-$bodyfont:'Montserrat', sans-serif;
+$bodyfont:'Inter', sans-serif;
 $headingfont:'Montserrat', sans-serif;
 
 
 /*Theme Colors*/
 
-$topbar: #1976d2;
-$sidebar: #fff;
+$topbar: #1B2A4A;
+$sidebar: #1B2A4A;
 $sidebar-white: #e5edef;
 $sidebar-alt:#edf0f5;
-$bodycolor: #f4f6f9;
-$headingtext: #455a64;
-$bodytext: #67757c; 
-$sidebar-text: #687384;
-$sidebar-icons: #555f6d ;
+$bodycolor: #F8FAFC;
+$headingtext: #1E293B;
+$bodytext: #64748B;
+$sidebar-text: #CBD5E1;
+$sidebar-icons: #94A3B8;
 
-$light-text: #a6b7bf;
-$themecolor: #398bf7;
-$themecolor-alt: #26c6da;
-$themecolor-dark: #028ee1;
+$light-text: #94A3B8;
+$themecolor: #2563EB;
+$themecolor-alt: #10B981;
+$themecolor-dark: #1D4ED8;
 
 /*bootstrap Color*/
-$danger: #ef5350;
-$success: #06d79c;
-$warning: #ffb22b;
+$danger: #EF4444;
+$success: #10B981;
+$warning: #F59E0B;
 $primary: #745af2;
-$info: #398bf7; 
+$info: #398bf7;
 $inverse: #2f3d4a;
 $secondary: #cccccc;
 $muted: #99abb4;
@@ -49,13 +49,13 @@ $light-warning: #fff8ec;
 $light-primary: #f1effd;
 $light-info: #cfecfe;
 $light-inverse: #f6f6f6;
-$light-megna: #e0f2f4; 
+$light-megna: #e0f2f4;
 
 
 
 $danger-dark: #e6294b;
-$success-dark: #04b381;
-$warning-dark: #e9ab2e;
+$success-dark: #059669;
+$warning-dark: #D97706;
 $primary-dark: #6352ce;
 $info-dark: #028ee1;
 $red-dark: #d61f1f;
@@ -73,7 +73,7 @@ $danger-shadow-hover:0 14px 26px -12px rgba(239,83,80,.42), 0 4px 23px 0 rgba(0,
 
 $success-shadow:0 2px 2px 0 rgba(40,190,189,.14), 0 3px 1px -2px rgba(40,190,189,.2), 0 1px 5px 0 rgba(40,190,189,.12);
 $success-shadow-hover:0 14px 26px -12px rgba(40,190,189,.42), 0 4px 23px 0 rgba(0,0,0,.12), 0 8px 10px -5px rgba(40,190,189,.2);
-    
+
 $primary-shadow:0 2px 2px 0 rgba(116,96,238,.14), 0 3px 1px -2px rgba(116,96,238,.2), 0 1px 5px 0 rgba(116,96,238,.12);
 $primary-shadow-hover:0 14px 26px -12px rgba(116,96,238,.42), 0 4px 23px 0 rgba(0,0,0,.12), 0 8px 10px -5px rgba(116,96,238,.2);
 

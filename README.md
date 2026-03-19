@@ -1,5 +1,147 @@
 # ** Facturador PRO 5 **
 
+---
+
+## 🚀 Despliegue en Servidor Ubuntu con Docker (Configuración actualizada)
+
+### Estructura de archivos Docker incluida
+
+```
+facturadorpro5/
+├── docker-compose.yml          ← Desarrollo local (PC)
+├── docker-compose.prod.yml     ← Producción (servidor Ubuntu)
+├── .env.prod.example           ← Template de variables para producción
+├── deploy.sh                   ← Script de despliegue automatizado
+├── .dockerignore
+└── docker/
+    ├── php/
+    │   ├── Dockerfile
+    │   ├── entrypoint.sh       ← Arranque: permisos, migraciones, caché
+    │   └── local.ini
+    ├── nginx/
+    │   ├── default.conf        ← Nginx interno del contenedor
+    │   └── nginx-proxy.conf    ← Config para el Nginx del HOST (reverse proxy)
+    └── mysql/
+        └── my.cnf
+```
+
+---
+
+### Caso: Proyecto corriendo en local (docker-compose) → subir al servidor
+
+#### 1. Exportar la base de datos desde tu PC local
+
+```bash
+# Desde tu PC local — exportar la BD del contenedor MySQL
+docker exec facturador_mysql mysqldump -uroot -p<TU_PASSWORD> --all-databases > backup_local.sql
+
+# Copiar el backup al servidor
+scp backup_local.sql usuario@IP_SERVIDOR:/opt/facturadorpro5/
+```
+
+#### 2. Preparar el servidor Ubuntu
+
+```bash
+# Conectarte al servidor
+ssh usuario@IP_SERVIDOR
+
+# Instalar Docker y Docker Compose (si no están instalados)
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Clonar o copiar el proyecto
+cd /opt
+git clone <url-del-repo> facturadorpro5
+cd facturadorpro5
+```
+
+#### 3. Configurar variables de entorno
+
+```bash
+# Copiar el template de producción
+cp .env.prod.example .env
+nano .env
+
+# Valores MÍNIMOS que debes cambiar:
+#   APP_KEY=              ← genera con: php artisan key:generate --show
+#   APP_URL=              ← https://tudominio.com
+#   APP_URL_BASE=         ← tudominio.com
+#   DB_PASSWORD=          ← contraseña segura
+#   API_SERVICE_URL=      ← https://api.migo.pe
+#   API_SERVICE_TOKEN=    ← tu token de api.migo.pe
+```
+
+#### 4. Primer despliegue
+
+```bash
+chmod +x deploy.sh
+./deploy.sh install
+```
+
+El script automáticamente:
+- Construye la imagen PHP con todas las extensiones
+- Levanta MySQL, Redis, Nginx, Queue worker y Scheduler
+- Ejecuta las migraciones de Laravel
+- Aplica `config:cache` y `view:cache`
+
+#### 5. Importar la base de datos del entorno local
+
+```bash
+# Esperar a que MySQL esté listo (30-60 seg tras el install)
+# Luego importar el backup
+docker exec -i facturador_mysql mysql -uroot -p<DB_PASSWORD> < backup_local.sql
+```
+
+#### 6. Configurar el Nginx del HOST (reverse proxy)
+
+Tu servidor ya tiene Nginx instalado. Solo agrega el sitio:
+
+```bash
+# Copiar la configuración lista
+sudo cp docker/nginx/nginx-proxy.conf /etc/nginx/sites-available/facturadorpro5
+
+# Editar el archivo y reemplazar "tudominio.com" con tu dominio real
+sudo nano /etc/nginx/sites-available/facturadorpro5
+
+# Activar y recargar
+sudo ln -s /etc/nginx/sites-available/facturadorpro5 /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+#### 7. SSL con Let's Encrypt (recomendado)
+
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d tudominio.com -d www.tudominio.com
+```
+
+---
+
+### Comandos cotidianos con deploy.sh
+
+```bash
+./deploy.sh status           # Ver estado de todos los contenedores
+./deploy.sh logs             # Ver logs en tiempo real (Ctrl+C para salir)
+./deploy.sh update           # git pull + rebuild + reiniciar (sin bajar la BD)
+./deploy.sh restart          # Solo reiniciar contenedores
+./deploy.sh artisan migrate  # Correr cualquier comando artisan
+./deploy.sh down             # Detener todo (los datos se conservan en volúmenes)
+```
+
+### Diferencias entre entornos
+
+| Característica | Local (`docker-compose.yml`) | Servidor (`docker-compose.prod.yml`) |
+|---|---|---|
+| `APP_ENV` | local | production |
+| `APP_DEBUG` | true | false |
+| Puerto MySQL | 3307 (accesible desde host) | solo interno |
+| Puerto Redis | 6380 (accesible desde host) | solo interno |
+| Nginx | 0.0.0.0:8080 | 127.0.0.1:8080 (solo localhost) |
+| Scheduler | no incluido | incluido como servicio |
+| Caché | no aplicada | config:cache + view:cache |
+
+---
 
 ## Manuales de Instalación
 
@@ -117,11 +259,16 @@ nexSoft<br>
 guillermo.cornejo.a@outlook.com<br>
 WhatsApp: 990411130<b>
 
-## Api Perú
+## API RUC / DNI / Tipo de Cambio
 
-[apiperu.pro](http://apiperu.pro "Clic")<br>
-soporte@apiperu.pro<br>
-Cuenta Pro gratis contactar al WhatsApp: 936051451<b>
+Este proyecto usa **[migo.pe](https://api.migo.pe)** para consultas de RUC, DNI y tipo de cambio.
+
+Obtén tu token en: [https://api.migo.pe](https://api.migo.pe)<br>
+Configura en `.env`:
+```
+API_SERVICE_URL=https://api.migo.pe
+API_SERVICE_TOKEN=tu_token_aqui
+```
 
 
 

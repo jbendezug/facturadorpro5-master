@@ -1,0 +1,169 @@
+# =============================================================================
+# docker-compose.prod.yml  –  FacturadorPro5  PRODUCCIÓN
+# =============================================================================
+# Uso en el servidor Ubuntu:
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# El Nginx del HOST (ya instalado en tu servidor) hace reverse-proxy hacia
+# 127.0.0.1:8080 donde escucha el Nginx interno de este compose.
+# MySQL y Redis NO exponen puertos al exterior.
+# =============================================================================
+
+services:
+
+  # ───────────────────────────────────────────
+  # PHP-FPM  (app principal)
+  # Construye la imagen y la etiqueta para reutilizar en workers
+  # ───────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    image: facturadorpro5_app:latest
+    container_name: facturador_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - facturador_net
+
+  # ───────────────────────────────────────────
+  # Nginx interno
+  # El Nginx del host hace proxy → 127.0.0.1:8080
+  # ───────────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: facturador_nginx
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"       # solo localhost; el Nginx externo accede aquí
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - facturador_net
+
+  # ───────────────────────────────────────────
+  # MySQL 8.0  (sin puerto expuesto en producción)
+  # Misma versión que entorno local para máxima compatibilidad
+  # ───────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: facturador_mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE:-tenancy}
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - facturador_net
+
+  # ───────────────────────────────────────────
+  # Redis  (sin puerto expuesto en producción)
+  # ───────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: facturador_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - facturador_net
+
+  # ───────────────────────────────────────────
+  # Queue Worker  (reutiliza imagen del app)
+  # ───────────────────────────────────────────
+  queue:
+    image: facturadorpro5_app:latest
+    container_name: facturador_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    entrypoint: []                  # omite el entrypoint de setup
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=300
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - REDIS_HOST=redis
+      - SKIP_SETUP=true
+    depends_on:
+      - app
+    networks:
+      - facturador_net
+
+  # ───────────────────────────────────────────
+  # Scheduler  (equivalente a * * * * * artisan schedule:run)
+  # ───────────────────────────────────────────
+  scheduler:
+    image: facturadorpro5_app:latest
+    container_name: facturador_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    entrypoint: []
+    command: >
+      sh -c "while true; do php artisan schedule:run --verbose --no-interaction && sleep 60; done"
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - REDIS_HOST=redis
+      - SKIP_SETUP=true
+    depends_on:
+      - app
+    networks:
+      - facturador_net
+
+# =============================================================================
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  facturador_net:
+    driver: bridge

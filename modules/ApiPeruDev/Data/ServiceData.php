@@ -25,6 +25,7 @@
         /** @var Company */
         protected $company;
         protected $parameters;
+        protected $apiToken;
 
         public function __construct()
         {
@@ -48,14 +49,15 @@
                 }
             }
 
-            $url = $configuration->url_apiruc = !'' ? $configuration->url_apiruc : config('configuration.api_service_url');
-            $token = $configuration->token_apiruc = !'' ? $configuration->token_apiruc : config('configuration.api_service_token');
+            $url = !empty($configuration->url_apiruc) ? $configuration->url_apiruc : config('configuration.api_service_url');
+            $token = !empty($configuration->token_apiruc) ? $configuration->token_apiruc : config('configuration.api_service_token');
             $this->configuration = $configuration;
             $this->trackApi = $trackApi;
             $this->company = $company;
 
 
             $this->client = new Client(['base_uri' => $url]);
+            $this->apiToken = $token;
             $this->parameters = [
                 'http_errors' => false,
                 'connect_timeout' => 10,
@@ -94,80 +96,124 @@
 
         }
 
+        protected function isMigoApi()
+        {
+            $baseUri = (string) $this->client->getConfig('base_uri');
+            return strpos($baseUri, 'migo.pe') !== false;
+        }
+
         public function service($type, $number)
         {
+            if ($this->isMigoApi()) {
+                $res = $this->client->request('GET', '/api/v1/' . $type, array_merge($this->parameters, [
+                    'query' => [$type => $number, 'token' => $this->apiToken],
+                ]));
+            } else {
+                $res = $this->client->request('GET', '/api/' . $type . '/' . $number, $this->parameters);
+            }
 
-            $res = $this->client->request('GET', '/api/' . $type . '/' . $number, $this->parameters);
-            $response = json_decode($res->getBody()->getContents(), true);
+            $body = $res->getBody()->getContents();
+            $response = json_decode($body, true);
 
             $res_data = [];
             if ($response['success']) {
-                $data = $response['data'];
+                // migo.pe devuelve los datos en la raíz (sin key 'data')
+                // apiperu.dev los devuelve dentro de $response['data']
+                $data = $this->isMigoApi() ? $response : ($response['data'] ?? []);
+
                 if ($type === 'dni') {
                     $department_id = '';
                     $province_id = null;
                     $district_id = null;
                     $address = null;
-                    if (key_exists('source', $response) && $response['source'] === 'apiperu.dev') {
-                        if (strlen($data['ubigeo_sunat'])) {
-                            $department_id = $data['ubigeo'][0];
-                            $province_id = $data['ubigeo'][1];
-                            $district_id = $data['ubigeo'][2];
-                            $address = $data['direccion'];
+
+                    if ($this->isMigoApi()) {
+                        // migo.pe: ubigeo es string "150101" — 6 chars = district, 4 = province, 2 = department
+                        $ubigeo_str = $data['ubigeo'] ?? '';
+                        $address    = $data['direccion'] ?? null;
+                        if (strlen($ubigeo_str) === 6) {
+                            $district_id   = $ubigeo_str;
+                            $province_id   = substr($ubigeo_str, 0, 4);
+                            $department_id = substr($ubigeo_str, 0, 2);
                         }
                     } else {
-                        $department_id = $data['ubigeo'][0];
-                        $province_id = $data['ubigeo'][1];
-                        $district_id = $data['ubigeo'][2];
-                        $address = $data['direccion'];
+                        $ubigeo      = $data['ubigeo'] ?? [];
+                        $ubigeo_sunat = $data['ubigeo_sunat'] ?? '';
+                        if (key_exists('source', $response) && $response['source'] === 'apiperu.dev') {
+                            if (strlen($ubigeo_sunat)) {
+                                $department_id = $ubigeo[0] ?? '';
+                                $province_id   = $ubigeo[1] ?? null;
+                                $district_id   = $ubigeo[2] ?? null;
+                                $address       = $data['direccion'] ?? null;
+                            }
+                        } else {
+                            $department_id = $ubigeo[0] ?? '';
+                            $province_id   = $ubigeo[1] ?? null;
+                            $district_id   = $ubigeo[2] ?? null;
+                            $address       = $data['direccion'] ?? null;
+                        }
                     }
 
                     $res_data = [
-                        'name' => $data['nombre_completo'],
-                        'trade_name' => '',
-                        'location_id' => $district_id,
-                        'address' => $address,
+                        'name'          => $data['nombre'] ?? ($data['nombre_completo'] ?? ($data['nombres'] ?? '')),
+                        'trade_name'    => '',
+                        'location_id'   => $district_id,
+                        'address'       => $address,
                         'department_id' => $department_id,
-                        'province_id' => $province_id,
-                        'district_id' => $district_id,
-                        'condition' => '',
-                        'state' => '',
+                        'province_id'   => $province_id,
+                        'district_id'   => $district_id,
+                        'condition'     => '',
+                        'state'         => '',
                     ];
                 }
 
                 if ($type === 'ruc') {
-                    $address = '';
+                    $address       = '';
                     $department_id = null;
-                    $province_id = null;
-                    $district_id = null;
-                    if (key_exists('source', $response) && $response['source'] === 'apiperu.dev') {
-                        if (strlen($data['ubigeo_sunat'])) {
-                            $department_id = $data['ubigeo'][0];
-                            $province_id = $data['ubigeo'][1];
-                            $district_id = $data['ubigeo'][2];
-                            $address = $data['direccion'];
+                    $province_id   = null;
+                    $district_id   = null;
+
+                    if ($this->isMigoApi()) {
+                        // migo.pe: ubigeo es string "150141" — 6 chars = district, 4 = province, 2 = department
+                        $ubigeo_str = $data['ubigeo'] ?? '';
+                        $address    = $data['direccion'] ?? ($data['domicilio_fiscal'] ?? '');
+                        if (strlen($ubigeo_str) === 6) {
+                            $district_id   = $ubigeo_str;
+                            $province_id   = substr($ubigeo_str, 0, 4);
+                            $department_id = substr($ubigeo_str, 0, 2);
                         }
                     } else {
-                        $department_id = $data['ubigeo'][0];
-                        $province_id = $data['ubigeo'][1];
-                        $district_id = $data['ubigeo'][2];
-                        $address = $data['direccion'];
+                        $ubigeo       = $data['ubigeo'] ?? [];
+                        $ubigeo_sunat = $data['ubigeo_sunat'] ?? '';
+                        if (key_exists('source', $response) && $response['source'] === 'apiperu.dev') {
+                            if (strlen($ubigeo_sunat)) {
+                                $department_id = $ubigeo[0] ?? null;
+                                $province_id   = $ubigeo[1] ?? null;
+                                $district_id   = $ubigeo[2] ?? null;
+                                $address       = $data['direccion'] ?? '';
+                            }
+                        } else {
+                            $department_id = $ubigeo[0] ?? null;
+                            $province_id   = $ubigeo[1] ?? null;
+                            $district_id   = $ubigeo[2] ?? null;
+                            $address       = $data['direccion'] ?? '';
+                        }
                     }
 
                     $res_data = [
-                        'name' => $data['nombre_o_razon_social'],
-                        'trade_name' => '',
-                        'address' => $address,
+                        'name'          => $data['nombre_o_razon_social'] ?? ($data['razon_social'] ?? ''),
+                        'trade_name'    => '',
+                        'address'       => $address,
                         'department_id' => $department_id,
-                        'province_id' => $province_id,
-                        'district_id' => $district_id,
-                        'condition' => $data['condicion'],
-                        'state' => $data['estado'],
+                        'province_id'   => $province_id,
+                        'district_id'   => $district_id,
+                        'condition'     => $data['condicion_de_domicilio'] ?? ($data['condicion'] ?? ''),
+                        'state'         => $data['estado_del_contribuyente'] ?? ($data['estado'] ?? ''),
                     ];
                 }
                 $response['data'] = $res_data;
             }
-            $this->saveService(1,$response);
+            $this->saveService(1, $response);
             return $response;
         }
 
@@ -209,37 +255,66 @@
                     'sale' => $exchange->sale
                 ];
             }
-            $form_params = [
-                'fecha' => $date,
-            ];
 
-            $this->parameters['form_params'] = $form_params;
-            $res = $this->client->request('POST', '/api/tipo_de_cambio', $this->parameters);
-            $response = json_decode($res->getBody()->getContents(), true);
-
-            if ($response['success']) {
-                $data = $response['data'];
-                ExchangeRate::query()->create([
-                    'date' => $data['fecha_busqueda'],
-                    'date_original' => $data['fecha_sunat'],
-                    'sale_original' => $data['venta'],
-                    'sale' => $data['venta'],
-                    'purchase_original' => $data['compra'],
-                    'purchase' => $data['compra'],
+            if ($this->isMigoApi()) {
+                // migo.pe: POST /api/v1/exchange con fecha_inicio y fecha_fin en body JSON
+                $params = array_merge($this->parameters, [
+                    'json' => [
+                        'fecha_inicio' => $date,
+                        'fecha_fin'    => $date,
+                        'token'        => $this->apiToken,
+                    ],
                 ]);
+                $res = $this->client->request('POST', '/api/v1/exchange', $params);
+                $response = json_decode($res->getBody()->getContents(), true);
 
-                return [
-                    'date' => $data['fecha_busqueda'],
-                    'purchase' => $data['compra'],
-                    'sale' => $data['venta']
-                ];
+                if (!empty($response['success']) && !empty($response['data'])) {
+                    $data = $response['data'][0];
+                    ExchangeRate::query()->create([
+                        'date'              => $data['fecha'],
+                        'date_original'     => $data['fecha'],
+                        'sale_original'     => $data['precio_venta'],
+                        'sale'              => $data['precio_venta'],
+                        'purchase_original' => $data['precio_compra'],
+                        'purchase'          => $data['precio_compra'],
+                    ]);
+
+                    return [
+                        'date'     => $data['fecha'],
+                        'purchase' => $data['precio_compra'],
+                        'sale'     => $data['precio_venta'],
+                    ];
+                }
+            } else {
+                $this->parameters['form_params'] = ['fecha' => $date];
+                $res = $this->client->request('POST', '/api/tipo_de_cambio', $this->parameters);
+                $response = json_decode($res->getBody()->getContents(), true);
+
+                if ($response['success']) {
+                    $data = $response['data'];
+                    ExchangeRate::query()->create([
+                        'date'              => $data['fecha_busqueda'],
+                        'date_original'     => $data['fecha_sunat'],
+                        'sale_original'     => $data['venta'],
+                        'sale'              => $data['venta'],
+                        'purchase_original' => $data['compra'],
+                        'purchase'          => $data['compra'],
+                    ]);
+
+                    return [
+                        'date'     => $data['fecha_busqueda'],
+                        'purchase' => $data['compra'],
+                        'sale'     => $data['venta'],
+                    ];
+                }
             }
+
             $this->saveService(4);
 
             return [
-                'date' => $date,
+                'date'     => $date,
                 'purchase' => 1,
-                'sale' => 1,
+                'sale'     => 1,
             ];
         }
 
