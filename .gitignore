@@ -1,2 +1,17 @@
 node_modules/
-node_modules/
+
+# Entorno — nunca subir al repo
+.env
+*.env
+.env.local
+.env.*.local
+
+# Storage y cache generados
+/storage/*.key
+/storage/app/public
+/bootstrap/cache/*.php
+
+# Logs
+*.log
+/storage/logs/
+
