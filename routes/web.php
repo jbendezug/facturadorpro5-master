@@ -382,6 +382,8 @@ if ($hostname) {
             // apiperu no usa estas rutas - revisar
             Route::get('services/ruc/{number}', 'Tenant\Api\ServiceController@ruc');
             Route::get('services/dni/{number}', 'Tenant\Api\ServiceController@dni');
+            Route::get('service/ruc/{number}', 'Tenant\Api\ServiceController@ruc');
+            Route::get('service/dni/{number}', 'Tenant\Api\ServiceController@dni');
             Route::post('services/exchange_rate', 'Tenant\Api\ServiceController@exchange_rate');
             Route::post('services/search_exchange_rate', 'Tenant\Api\ServiceController@searchExchangeRateByDate');
             Route::get('services/exchange_rate/{date}', 'Tenant\Api\ServiceController@exchangeRateTest');

@@ -17,6 +17,10 @@ if [ "${SKIP_SETUP:-false}" = "true" ]; then
 fi
 
 # ── Permisos de escritura ─────────────────────────────────────────────────────
+# CACHE_DRIVER=redis_tenancy no funciona en CLI (necesita SERVER_NAME del request)
+# Forzar 'file' para todos los comandos artisan del entrypoint.
+export CACHE_DRIVER=file
+
 echo "[setup] Ajustando permisos en storage/ y bootstrap/cache/ ..."
 chown -R www-data:www-data \
     /var/www/html/storage \
@@ -24,6 +28,10 @@ chown -R www-data:www-data \
 chmod -R 775 \
     /var/www/html/storage \
     /var/www/html/bootstrap/cache 2>/dev/null || true
+
+# ── Directorio temporal de mPDF ───────────────────────────────────────────────
+mkdir -p /var/www/html/vendor/mpdf/mpdf/tmp/mpdf
+chmod -R 777 /var/www/html/vendor/mpdf/mpdf/tmp
 
 # ── Instalar dependencias si vendor/ no existe ──────────────────────────────
 if [ ! -f /var/www/html/vendor/autoload.php ]; then
@@ -70,12 +78,17 @@ php artisan migrate --force
 # ── Optimizaciones de producción ─────────────────────────────────────────────
 if [ "${APP_ENV}" = "production" ]; then
     echo "[setup] Aplicando optimizaciones de producción..."
+    # config:cache: CACHE_DRIVER ya está forzado a 'file' en este entrypoint
     php artisan config:cache
-    php artisan view:cache
+    php artisan view:cache 2>/dev/null || echo "[setup] view:cache omitido (directorios de vistas incompletos — no crítico)"
 fi
 
 echo "========================================"
 echo "  Inicialización completa – iniciando php-fpm"
 echo "========================================"
+
+# Quitar el override de CACHE_DRIVER para que php-fpm herede el valor
+# correcto (redis) definido en .env / docker-compose env_file
+unset CACHE_DRIVER
 
 exec "$@"

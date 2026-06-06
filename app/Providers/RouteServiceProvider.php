@@ -23,7 +23,17 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Forzar identificación temprana del hostname para multi-tenancy
+        // Necesario para que $hostname esté disponible cuando se cargan las rutas
+        if (app()->bound(\Hyn\Tenancy\Contracts\Repositories\HostnameRepository::class)) {
+            $request = app(\Illuminate\Http\Request::class);
+            if ($request && $request->getHost()) {
+                app(\Hyn\Tenancy\Environment::class)->hostname(
+                    app(\Hyn\Tenancy\Contracts\Repositories\HostnameRepository::class)
+                        ->findByHostname($request->getHost())
+                );
+            }
+        }
 
         parent::boot();
     }

@@ -7,6 +7,7 @@
     use App\CoreFacturalo\Services\Extras\ExchangeRate;
     use App\CoreFacturalo\Services\Extras\ValidateCpe2;
     use App\CoreFacturalo\Services\Ruc\Sunat;
+    use App\CoreFacturalo\Services\Ruc\Migo as MigoRuc;
     use App\Http\Controllers\Controller;
     use App\Http\Requests\Tenant\ServiceRequest;
     use App\Models\Tenant\Catalogs\Department;
@@ -59,31 +60,51 @@
          */
         public function ruc($number)
         {
-            $service = new Sunat();
-            $res = $service->get($number);
-            if ($res) {
-                $province_id = Province::idByDescription($res->provincia);
+            $res = MigoRuc::search($number);
+            if ($res['success']) {
+                $data = $res['data'];
+                $provincia = $data['provincia'] ?? 'LIMA';
+                $departamento = $data['departamento'] ?? 'LIMA';
+                $distrito = $data['distrito'] ?? 'LIMA';
+                $province_id = Province::idByDescription($provincia);
                 return [
                     'success' => true,
                     'data' => [
-                        'name' => $res->razonSocial,
-                        'trade_name' => $res->nombreComercial,
-                        'address' => $res->direccion,
-                        'phone' => implode(' / ', $res->telefonos),
-                        'department' => ($res->departamento) ?: 'LIMA',
-                        'department_id' => Department::idByDescription($res->departamento),
-                        'province' => ($res->provincia) ?: 'LIMA',
+                        'name' => $data['nombre_o_razon_social'] ?? '',
+                        'trade_name' => $data['nombre_o_razon_social'] ?? '',
+                        'address' => $data['direccion_simple'] ?? '',
+                        'phone' => '',
+                        'department' => $departamento ?: 'LIMA',
+                        'department_id' => Department::idByDescription($departamento),
+                        'province' => $provincia ?: 'LIMA',
                         'province_id' => $province_id,
-                        'district' => ($res->distrito) ?: 'LIMA',
-                        'district_id' => District::idByDescription($res->distrito, $province_id),
+                        'district' => $distrito ?: 'LIMA',
+                        'district_id' => District::idByDescription($distrito, $province_id),
                     ]
                 ];
-            } else {
+            }
+            // Fallback a Sunat
+            $service = new Sunat();
+            $sunat = $service->get($number);
+            if ($sunat) {
+                $province_id = Province::idByDescription($sunat->provincia);
                 return [
-                    'success' => false,
-                    'message' => $service->getError()
+                    'success' => true,
+                    'data' => [
+                        'name' => $sunat->razonSocial,
+                        'trade_name' => $sunat->nombreComercial,
+                        'address' => $sunat->direccion,
+                        'phone' => implode(' / ', $sunat->telefonos),
+                        'department' => ($sunat->departamento) ?: 'LIMA',
+                        'department_id' => Department::idByDescription($sunat->departamento),
+                        'province' => ($sunat->provincia) ?: 'LIMA',
+                        'province_id' => $province_id,
+                        'district' => ($sunat->distrito) ?: 'LIMA',
+                        'district_id' => District::idByDescription($sunat->distrito, $province_id),
+                    ]
                 ];
             }
+            return ['success' => false, 'message' => $res['message'] ?? 'No se encontraron datos.'];
         }
 
 

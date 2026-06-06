@@ -57,13 +57,21 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 
 # Install PHP dependencies
-RUN composer install --no-autoloader --no-interaction --no-scripts --prefer-dist
+RUN composer install --no-autoloader --no-interaction --no-scripts --no-dev --prefer-dist
 
 # Copy remaining project files
 COPY . .
 
+# Crear directorios necesarios antes de composer scripts
+RUN mkdir -p storage/framework/{sessions,views,cache} \
+             storage/logs \
+             bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
 # Run composer scripts (autoload, package:discover, etc.)
-RUN composer dump-autoload --optimize \
+# --no-scripts evita que artisan package:discover corra en build time
+# (no hay .env disponible durante el build — el entrypoint lo corre en runtime)
+RUN composer dump-autoload --optimize --no-scripts \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 

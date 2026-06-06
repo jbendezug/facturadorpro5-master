@@ -536,7 +536,6 @@ class SaleNoteController extends Controller
         // $sellers = User::GetSellers(false)->get();
         $sellers = User::getSellersToNvCpe($establishment_id,$userId);
 
-
         return compact('customers', 'establishments','currency_types', 'discount_types', 'configuration',
                          'charge_types','company','payment_method_types', 'series', 'payment_destinations','sellers', 'global_charge_types');
     }

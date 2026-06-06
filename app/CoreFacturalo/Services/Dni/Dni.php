@@ -6,11 +6,12 @@ class Dni
 {
     public static function search($number)
     {
-        // $res = Essalud::search($number);
-        // if ($res['success']) {
-        //     return $res;
-        // }
+        $res = Migo::search($number);
+        if ($res['success']) {
+            return $res;
+        }
 
+        // Fallback a JNE si Migo falla
         $res = Jne::search($number);
         return $res;
     }
