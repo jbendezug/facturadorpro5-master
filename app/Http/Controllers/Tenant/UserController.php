@@ -117,7 +117,7 @@ class UserController extends Controller
         // $user->zone_id = $request->input('zone_id');
 
         if (!$id) {
-            $user->api_token = str_random(50);
+            $user->api_token = \Illuminate\Support\Str::random(50);
             $user->password = bcrypt($request->input('password'));
         } elseif ($request->has('password')) {
             if (config('tenant.password_change')) {

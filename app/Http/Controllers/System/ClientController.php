@@ -574,7 +574,7 @@
                 $tenancy = app(Environment::class);
                 $tenancy->tenant($website);
 
-                $token = str_random(50);
+                $token = \Illuminate\Support\Str::random(50);
 
                 $client = new Client();
                 $client->hostname_id = $hostname->id;

@@ -1,5 +1,8 @@
 node_modules/
 
+# Dependencias
+/vendor/
+
 # Entorno — nunca subir al repo
 .env
 *.env
@@ -9,9 +12,25 @@ node_modules/
 # Storage y cache generados
 /storage/*.key
 /storage/app/public
+/storage/framework/cache/data/
+/storage/framework/views/*.php
 /bootstrap/cache/*.php
 
 # Logs
 *.log
 /storage/logs/
 
+# Assets compilados (se generan con npm run dev/prod)
+/public/js/
+/public/css/
+/public/mix-manifest.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
