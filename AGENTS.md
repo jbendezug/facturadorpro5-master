@@ -2,66 +2,77 @@
 
 ## Estado del Proyecto
 
-Inicio de mejoras: **2024**
-Stack actual: Laravel 5.7 / PHP 7.1+ / Vue 2.5 / MySQL 8.0
+| Componente | Antes | Ahora |
+|------------|-------|-------|
+| PHP | 7.4.33 | **8.1.34** |
+| Laravel | 5.7.29 | **8.83.29** |
+| MySQL | 8.0 | 8.0 |
+| Vue | 2.5 | 2.5 |
+| Admin | ✅ | ✅ |
+| Tenant | ✅ | ✅ |
 
 ## Cambios Realizados
 
 ### P0 - Seguridad Crítica ✅
 
-| # | Tarea | Estado | Fecha |
-|---|-------|--------|-------|
-| 0.1 | Rotar secretos: sanitizar `.env.example` | ✅ | Sesión 1 |
-| 0.2 | Eliminar `dd()` activos (3 archivos críticos) | ✅ | Sesión 1 |
-| 0.3 | Ocultar `soap_password` de CompanyResource API | ✅ | Sesión 1 |
-| 0.4 | `.env` ya estaba en `.gitignore` | ✅ | Previo |
+| # | Tarea | Estado |
+|---|-------|--------|
+| 0.1 | Rotar secretos: sanitizar `.env.example` | ✅ |
+| 0.2 | Eliminar `dd()` activos (3 archivos) | ✅ |
+| 0.3 | Ocultar `soap_password` de CompanyResource API | ✅ |
+| 0.4 | `.env` en `.gitignore` | ✅ |
 
-#### Detalle cambios 0.1
-- **`.env.example`**: Se eliminó `APP_KEY` real (era `base64:5DSfpP/S+4aoBaqM3M/aK5Rd1rCOH/pX6FPotLt8dXM=`) y `TOKEN_SERVER` real (era `YqlOsLAaajRfIChCshfFEcsVoMF2GmWOkZiy6YtapxZcf2yRoS`). Ahora están vacíos para que cada entorno genere los suyos.
-
-#### Detalle cambios 0.2
-- **`app/Imports/DocumentsImport.php:208`**: `dd($e)` → `Log::error(...)` + `throw $e`
-- **`app/Imports/DocumentsImportTwoFormat.php:222`**: `dd($e)` → `Log::error(...)` + `throw $e`
-- **`modules/Report/Traits/MassiveDownloadTrait.php:457`**: Estaba dentro de un bloque `/* */` comentado → No requiere acción.
-
-#### Detalle cambios 0.3
-- **`app/Http/Resources/Tenant/CompanyResource.php:34`**: `soap_password` real → `'********'` (enmascarado)
-- **`app/Http/Resources/System/CompanyResource.php:22`**: `soap_password` real → `'********'` (enmascarado)
-
-### Tests - Infraestructura ✅
+### P1 - Migración Stack ✅
 
 | # | Tarea | Estado |
 |---|-------|--------|
-| Tests | Crear estructura de directorios | ✅ |
-| Tests | `phpunit.xml` actualizado con suite `CoreFacturalo` | ✅ |
-| Tests | `FacturaloTest.php` (test base) | ✅ |
-| Tests | `XmlGeneratorTest.php` (test helpers XML) | ✅ |
-| Tests | `QrCodeTest.php` (test QR) | ✅ |
-| Tests | `CompanyServiceTest.php` (test modelo) | ✅ |
-| Tests | `DocumentApiTest.php` (test API) | ✅ |
-| Tests | `TenantIsolationTest.php` (test multi-tenant) | ✅ |
-| Tests | `run-tests.sh` (script ejecutor) | ✅ |
+| 1.1 | Laravel 5.7 → 6.x | ✅ |
+| 1.2 | Laravel 6.x → 7.x | ✅ |
+| 1.3 | Laravel 7.x → 8.x | ✅ |
+| 1.4 | PHP 7.4 → 8.1 | ✅ |
+| 1.5 | PHPUnit 7 → 9 | ✅ |
+| 1.6 | Tinker 1 → 2, Collision 3 → 5 | ✅ |
+| 1.7 | Eliminar helpers deprecados (str_slug, str_random) | ✅ |
 
-## Pendiente para Próxima Sesión
+### Tests - Infraestructura ✅
 
-### P1 - Stack y Tests
-- [ ] Ejecutar `composer install` en Docker para instalar dependencias
-- [ ] Ejecutar `./run-tests.sh` para validar tests
-- [ ] Iniciar migración Laravel 5.7 → 6.x (ver `documentacion/mejoras/02-migracion-laravel.md`)
-- [ ] Reemplazar `fzaninotto/faker` → `fakerphp/faker` en `composer.json`
-- [ ] Actualizar `phpunit/phpunit ^7.0` → `^10.0`
+- Suite CoreFacturalo con tests para Facturalo, XmlFormat, QrCodeGenerate, XmlSigned
+- `phpunit.xml` actualizado, `run-tests.sh`
+- 9 tests / 17 assertions
+
+### Infraestructura Docker ✅
+
+- Dockerfile actualizado a `php:8.1-fpm` con todas las extensiones
+- docker-compose.yml funcional (app, nginx, mysql, redis, queue)
+- Entrypoint optimizado (sin --no-dev)
+- Composer 2.10
+
+## Pendiente
+
+### P1 - Migración (actual)
+- [x] ~~Laravel 8 → 9~~ → **En progreso**
+- [ ] Laravel 9 → 10
+- [ ] Reemplazar `fzaninotto/faker` → `fakerphp/faker`
 
 ### P2 - Refactorización
-- [ ] Descomponer `app/CoreFacturalo/Facturalo.php` en servicios
+- [ ] Descomponer `app/CoreFacturalo/Facturalo.php` (1,284 líneas → servicios)
 - [ ] Refactorizar frontend (lazy loading, Vuex modular)
+- [ ] Unificar DataTables duplicadas
 
 ### P3 - Módulos y BD
 - [ ] Fusionar Suscription + FullSuscription
 - [ ] Agregar claves foráneas a migraciones
+- [ ] Centralizar configuración de módulos
 
-## Próximos Pasos Recomendados
+## Comandos Rápidos
 
-1. `docker-compose up -d` para levantar entorno
-2. `docker exec -it facturadorpro5_app composer install`
-3. `docker exec -it facturadorpro5_app ./run-tests.sh all`
-4. Comenzar migración Laravel versión por versión
+```bash
+# Levantar proyecto
+docker start facturador_app facturador_nginx
+
+# Reconstruir imagen
+docker-compose build app
+
+# Ver logs
+docker logs facturador_app --tail 20
+```
