@@ -52,7 +52,7 @@ class LoginController extends Controller
             $config = Configuration::first();
         }
         $useLoginGlobal = $config->use_login_global;
-        $login = $config->login;
+        $login = $config;
         $company = Company::first();
         return view('tenant.auth.login', compact('company', 'login', 'useLoginGlobal'));
     }

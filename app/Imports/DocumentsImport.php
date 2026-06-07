@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 
 class DocumentsImport implements ToCollection
@@ -205,7 +206,11 @@ class DocumentsImport implements ToCollection
                         'json' => $json
                     ]);
                 } catch (Exception $e) {
-                    dd($e);
+                    Log::error('Error al importar documento: ' . $e->getMessage(), [
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                    ]);
+                    throw $e;
                 }
 
                 $registered += 1;

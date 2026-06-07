@@ -19,7 +19,7 @@ class CompanyResource extends JsonResource
             'soap_send_id' => $this->soap_send_id,
             'soap_type_id' => $this->soap_type_id,
             'soap_username' => $this->soap_username,
-            'soap_password' => $this->soap_password,
+            'soap_password' => $this->soap_password ? '********' : null,
             'soap_url' => $this->soap_url,
         ];
     }

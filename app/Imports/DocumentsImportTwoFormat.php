@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Illuminate\Support\Facades\Log;
 
 class DocumentsImportTwoFormat implements ToCollection
 {
@@ -219,7 +220,11 @@ class DocumentsImportTwoFormat implements ToCollection
                         'json' => $json
                     ]);
                 } catch (Exception $e) {
-                    dd($e);
+                    Log::error('Error al importar documento (TwoFormat): ' . $e->getMessage(), [
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                    ]);
+                    throw $e;
                 }
 
                 // dd($response);

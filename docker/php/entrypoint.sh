@@ -38,7 +38,6 @@ if [ ! -f /var/www/html/vendor/autoload.php ]; then
     echo "[setup] vendor/ no encontrado – ejecutando composer install ..."
     composer install \
         --no-interaction \
-        --no-dev \
         --optimize-autoloader \
         --prefer-dist
 fi
