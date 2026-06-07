@@ -1,4 +1,4 @@
-FROM php:7.4-fpm
+FROM php:8.1-fpm
 
 LABEL maintainer="facturadorpro"
 
@@ -57,7 +57,7 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 
 # Install PHP dependencies
-RUN composer install --no-autoloader --no-interaction --no-scripts --no-dev --prefer-dist
+RUN composer install --no-autoloader --no-interaction --no-scripts --no-dev --prefer-dist --ignore-platform-reqs
 
 # Copy remaining project files
 COPY . .

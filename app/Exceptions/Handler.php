@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Exception;
+use Throwable;
 use Http\Client\Exception\HttpException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -40,7 +41,7 @@ class Handler extends ExceptionHandler
      * @return void
      * @throws Exception
      */
-    public function report(Exception $exception)
+    public function report(Throwable $exception)
     {
         parent::report($exception);
     }
@@ -49,10 +50,10 @@ class Handler extends ExceptionHandler
      * Render an exception into an HTTP response.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $exception
+     * @param  \Throwable  $exception
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
      */
-    public function render($request, Exception $exception)
+    public function render($request, Throwable $exception)
     {
         if ($exception instanceof AuthenticationException) {
             if ($this->isFrontend($request)) {
@@ -106,10 +107,10 @@ class Handler extends ExceptionHandler
 
     private function isFrontend(Request $request)
     {
-        return $request->acceptsHtml() && collect($request->route()->middleware())->contains('web');
+        return $request->acceptsHtml() && $request->route() && collect($request->route()->middleware())->contains('web');
     }
 
-    private function errorResponse($message, $code , Exception $exception)
+    private function errorResponse($message, $code , Throwable $exception)
     {
         $message = ($message === '')?$exception->getMessage():$message;
         $code = ($code === '')?$exception->getCode():$code;
