@@ -1,24 +1,18 @@
 const mix = require('laravel-mix');
-
-/*
- |--------------------------------------------------------------------------
- | Mix Asset Management
- |--------------------------------------------------------------------------
- |
- | Mix provides a clean, fluent API for defining some Webpack build steps
- | for your Laravel application. By default, we are compiling the Sass
- | file for the application as well as bundling up all the JS files.
- |
- */
+const path = require('path');
 
 mix.js('resources/js/app.js', 'public/js')
+   .vue()
    .sass('resources/sass/style.scss', 'public/css/app.css')
    .sass('resources/sass/auth.scss', 'public/css/auth.css')
-   .extract(['vue'])
+   .extract()
    .version();
 
 mix.webpackConfig({
     resolve: {
+        fallback: {
+            "stream": require.resolve("stream-browserify")
+        },
         alias: {
             '@components': path.resolve(__dirname, 'resources/js/components'),
             '@views': path.resolve(__dirname, 'resources/js/views/tenant'),
@@ -38,6 +32,6 @@ mix.webpackConfig({
             '@viewsModuleMercadoPago': path.resolve(__dirname, 'modules/MercadoPago/Resources/assets/js/views'),
         }
     }
-}).sourceMaps()
+}).sourceMaps();
 
 mix.disableSuccessNotifications();
