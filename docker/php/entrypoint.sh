@@ -161,6 +161,24 @@ php -r "
 echo "[setup] Ejecutando migraciones de tenants..."
 php artisan tenancy:migrate --force 2>&1 || echo "[setup] Migraciones de tenants ya ejecutadas."
 
+# ── Crear admin user si no existe ───────────────────────────────────────────
+echo "[setup] Verificando usuario admin..."
+php artisan tinker --execute="
+    \$email = env('ADMIN_EMAIL', 'admin@midominio.com');
+    \$password = env('ADMIN_PASSWORD', '123456');
+    \$user = \App\Models\System\User::where('email', \$email)->first();
+    if (!\$user) {
+        \App\Models\System\User::create([
+            'name' => 'Admin',
+            'email' => \$email,
+            'password' => bcrypt(\$password),
+        ]);
+        echo \"[setup] Admin user \$email creado.\\n\";
+    } else {
+        echo \"[setup] Admin user ya existe.\\n\";
+    }
+" 2>&1 || echo "[setup] No se pudo verificar/crear admin user."
+
 # ── Optimizaciones de producción ─────────────────────────────────────────────
 if [ "${APP_ENV}" = "production" ]; then
     echo "[setup] Aplicando optimizaciones de producción..."
