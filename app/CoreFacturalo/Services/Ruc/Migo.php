@@ -3,6 +3,7 @@
 namespace App\CoreFacturalo\Services\Ruc;
 
 use App\Models\System\Configuration;
+use Illuminate\Support\Facades\Cache;
 
 class Migo
 {
@@ -12,17 +13,19 @@ class Migo
             return ['success' => false, 'message' => 'RUC tiene 11 dígitos.'];
         }
 
-        [$url, $token] = self::resolveCredentials();
+        return Cache::remember('ruc_' . $number, now()->addHours(24), function () use ($number) {
+            [$url, $token] = self::resolveCredentials();
 
-        if (empty($token)) {
-            return ['success' => false, 'message' => 'Token de consulta no configurado.'];
-        }
+            if (empty($token)) {
+                return ['success' => false, 'message' => 'Token de consulta no configurado.'];
+            }
 
-        if (self::isMigoProvider($url)) {
-            return self::searchMigo($number, $url, $token);
-        }
+            if (self::isMigoProvider($url)) {
+                return self::searchMigo($number, $url, $token);
+            }
 
-        return self::searchApiPeru($number, $url, $token);
+            return self::searchApiPeru($number, $url, $token);
+        });
     }
 
     private static function searchMigo($number, $url, $token)

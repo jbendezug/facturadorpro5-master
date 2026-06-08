@@ -22,6 +22,7 @@ Mejorar tiempos de respuesta del sistema sin introducir cambios de alto riesgo.
 ## Impacto esperado
 - Menos consultas repetitivas a base de datos al abrir la configuracion avanzada.
 - Menor tiempo de respuesta en una pantalla administrativa de uso frecuente.
+- Cache externo RUC/DNI evita llamadas HTTP repetitivas a API externa (24h).
 
 ## Validacion
 - Sin errores reportados por el editor en el archivo modificado.
@@ -29,6 +30,6 @@ Mejorar tiempos de respuesta del sistema sin introducir cambios de alto riesgo.
 
 ## Siguientes pasos propuestos
 1. Cachear otras tablas maestras frecuentes en formularios grandes. ✅ Parcial
-2. Revisar busqueda remota de clientes y documentos, donde hay mas impacto percibido.
+2. Revisar busqueda remota de clientes y documentos, donde hay mas impacto percibido. ✅ Parcial (RUC/DNI cacheados 24h)
 3. Auditar endpoints con `all()` y `get()` sin paginacion en panel tenant/system.
 4. Preparar una fase separada para cache/redis/config cache de despliegue.
