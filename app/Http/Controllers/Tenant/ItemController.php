@@ -45,6 +45,7 @@ use App\Models\Tenant\Warehouse;
 use App\Traits\OfflineTrait;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -185,41 +186,57 @@ class ItemController extends Controller
 
     public function tables()
     {
-        $unit_types = UnitType::whereActive()->orderByDescription()->get();
-        $currency_types = CurrencyType::whereActive()->orderByDescription()->get();
-        $attribute_types = AttributeType::whereActive()->orderByDescription()->get();
-        $system_isc_types = SystemIscType::whereActive()->orderByDescription()->get();
-        $affectation_igv_types = AffectationIgvType::whereActive()->get();
-        $warehouses = Warehouse::all();
-        $accounts = Account::all();
-        $tags = Tag::all();
-        $categories = Category::all();
-        $brands = Brand::all();
-        $configuration= Configuration::first();
-        /** Informacion adicional */
-        $colors = collect([]);
-        $CatItemStatus=$colors;
-        $CatItemUnitBusiness = $colors;
-        $CatItemMoldCavity = $colors;
-        $CatItemPackageMeasurement =$colors;
-        $CatItemUnitsPerPackage = $colors;
-        $CatItemMoldProperty = $colors;
-        $CatItemProductFamily= $colors;
-        $CatItemSize= $colors;
-        if($configuration->isShowExtraInfoToItem()){
-            $colors = CatColorsItem::all();
-            $CatItemStatus= CatItemStatus::all();
-            $CatItemSize= CatItemSize::all();
-            $CatItemUnitBusiness = CatItemUnitBusiness::all();
-            $CatItemMoldCavity = CatItemMoldCavity::all();
-            $CatItemPackageMeasurement = CatItemPackageMeasurement::all();
-            $CatItemUnitsPerPackage = CatItemUnitsPerPackage::all();
-            $CatItemMoldProperty = CatItemMoldProperty::all();
-            $CatItemProductFamily= CatItemProductFamily::all();
-        }
-        /** Informacion adicional */
-        $configuration = $configuration->getCollectionData();
-        $inventory_configuration = InventoryConfiguration::firstOrFail();
+        $cached = Cache::remember('tenant.items.tables', now()->addMinutes(30), function () {
+            $configuration = Configuration::first();
+            $extra = $configuration->isShowExtraInfoToItem();
+            $colors = $extra ? CatColorsItem::all() : collect([]);
+            return [
+                'unit_types' => UnitType::whereActive()->orderByDescription()->get(),
+                'currency_types' => CurrencyType::whereActive()->orderByDescription()->get(),
+                'attribute_types' => AttributeType::whereActive()->orderByDescription()->get(),
+                'system_isc_types' => SystemIscType::whereActive()->orderByDescription()->get(),
+                'affectation_igv_types' => AffectationIgvType::whereActive()->get(),
+                'warehouses' => Warehouse::all(),
+                'accounts' => Account::all(),
+                'tags' => Tag::all(),
+                'categories' => Category::all(),
+                'brands' => Brand::all(),
+                'colors' => $colors,
+                'CatItemStatus' => $extra ? CatItemStatus::all() : collect([]),
+                'CatItemSize' => $extra ? CatItemSize::all() : collect([]),
+                'CatItemUnitBusiness' => $extra ? CatItemUnitBusiness::all() : collect([]),
+                'CatItemMoldCavity' => $extra ? CatItemMoldCavity::all() : collect([]),
+                'CatItemPackageMeasurement' => $extra ? CatItemPackageMeasurement::all() : collect([]),
+                'CatItemUnitsPerPackage' => $extra ? CatItemUnitsPerPackage::all() : collect([]),
+                'CatItemMoldProperty' => $extra ? CatItemMoldProperty::all() : collect([]),
+                'CatItemProductFamily' => $extra ? CatItemProductFamily::all() : collect([]),
+                'configuration' => $configuration->getCollectionData(),
+                'inventory_configuration' => InventoryConfiguration::firstOrFail(),
+            ];
+        });
+
+        extract($cached);
+        $unit_types = $cached['unit_types'];
+        $currency_types = $cached['currency_types'];
+        $attribute_types = $cached['attribute_types'];
+        $system_isc_types = $cached['system_isc_types'];
+        $affectation_igv_types = $cached['affectation_igv_types'];
+        $warehouses = $cached['warehouses'];
+        $accounts = $cached['accounts'];
+        $tags = $cached['tags'];
+        $categories = $cached['categories'];
+        $brands = $cached['brands'];
+        $configuration = $cached['configuration'];
+        $colors = $cached['colors'];
+        $CatItemStatus = $cached['CatItemStatus'];
+        $CatItemSize = $cached['CatItemSize'];
+        $CatItemUnitBusiness = $cached['CatItemUnitBusiness'];
+        $CatItemMoldCavity = $cached['CatItemMoldCavity'];
+        $CatItemPackageMeasurement = $cached['CatItemPackageMeasurement'];
+        $CatItemUnitsPerPackage = $cached['CatItemUnitsPerPackage'];
+        $CatItemMoldProperty = $cached['CatItemMoldProperty'];
+        $CatItemProductFamily = $cached['CatItemProductFamily'];
+        $inventory_configuration = $cached['inventory_configuration'];
         /*
         $configuration = Configuration::select(
             'affectation_igv_type_id',

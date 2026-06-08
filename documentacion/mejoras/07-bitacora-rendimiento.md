@@ -28,7 +28,7 @@ Mejorar tiempos de respuesta del sistema sin introducir cambios de alto riesgo.
 - No fue posible ejecutar `php -l` en este entorno porque no hay binario `php` disponible en terminal.
 
 ## Siguientes pasos propuestos
-1. Cachear otras tablas maestras frecuentes en formularios grandes.
+1. Cachear otras tablas maestras frecuentes en formularios grandes. ✅ Parcial
 2. Revisar busqueda remota de clientes y documentos, donde hay mas impacto percibido.
 3. Auditar endpoints con `all()` y `get()` sin paginacion en panel tenant/system.
 4. Preparar una fase separada para cache/redis/config cache de despliegue.
