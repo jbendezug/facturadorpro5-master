@@ -313,6 +313,93 @@
                             </div>
                         </template>
 
+                        <!-- NUEVA SECCIÓN: Guía de Remisión Electrónica (GRE) -->
+                        <template v-if="form.soap_type_id == '02'">
+                            <div class="row">
+                                <div class="col-md-12 mt-3">
+                                    <h4 class="border-bottom">
+                                        Guía de Remisión Electrónica (GRE) - Nueva API REST
+                                        <el-tooltip class="item"
+                                                    content="RS N° 000123-2022/SUNAT - Esquema CustomizationID 2.0 con OAuth 2.0"
+                                                    effect="dark"
+                                                    placement="top-start">
+                                            <i class="fa fa-info-circle"></i>
+                                        </el-tooltip>
+                                    </h4>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <el-checkbox v-model="form.use_gre">
+                                            <strong>Habilitar nuevo esquema GRE (REST + OAuth 2.0)</strong>
+                                        </el-checkbox>
+                                        <div class="sub-title text-muted">
+                                            <small>
+                                                <i class="fa fa-info-circle"></i>
+                                                Al activar esta opción, las guías de remisión se enviarán mediante la nueva API REST de SUNAT.
+                                                <strong>Requiere credenciales OAuth</strong> obtenidas en el portal SOL SUNAT.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <template v-if="form.use_gre">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div :class="{'has-danger': errors.gre_client_id}"
+                                             class="form-group">
+                                            <label class="control-label">
+                                                GRE Client ID
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <el-input v-model="form.gre_client_id"
+                                                      placeholder="test-85e5b0ae-255c-4891-a595-..."></el-input>
+                                            <div class="sub-title text-muted">
+                                                <small>Client ID OAuth otorgado por SUNAT SOL para GRE</small>
+                                            </div>
+                                            <small v-if="errors.gre_client_id"
+                                                   class="form-control-feedback"
+                                                   v-text="errors.gre_client_id[0]"></small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div :class="{'has-danger': errors.gre_client_secret}"
+                                             class="form-group">
+                                            <label class="control-label">
+                                                GRE Client Secret
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <el-input v-model="form.gre_client_secret"
+                                                      type="password"
+                                                      show-password
+                                                      placeholder="test_x7v0hLzJe2/S7vG..."></el-input>
+                                            <div class="sub-title text-muted">
+                                                <small>Client Secret OAuth otorgado por SUNAT SOL para GRE</small>
+                                            </div>
+                                            <small v-if="errors.gre_client_secret"
+                                                   class="form-control-feedback"
+                                                   v-text="errors.gre_client_secret[0]"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="alert alert-info">
+                                            <i class="fa fa-lightbulb-o"></i>
+                                            <strong>¿Cómo obtener estas credenciales?</strong>
+                                            <ol class="mb-0 mt-2" style="padding-left: 20px;">
+                                                <li>Ingresar a <strong>SUNAT Operaciones en Línea</strong> con Clave SOL</li>
+                                                <li>Ir a <strong>Mis aplicaciones</strong> → <strong>Crear nueva aplicación</strong></li>
+                                                <li>Seleccionar <strong>Guía de Remisión Electrónica (GRE)</strong></li>
+                                                <li>SUNAT entregará el <strong>Client ID</strong> y <strong>Client Secret</strong></li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+
                     </div>
                     <div class="form-actions text-right pt-2">
                         <el-button :loading="loading_submit"
@@ -370,7 +457,7 @@ export default {
                 console.log(2)
 
             })
-        
+
         this.events()
     },
     methods: {
@@ -385,7 +472,7 @@ export default {
 
         },
         async getRecord(){
-            
+
             await this.$http.get(`/${this.resource}/record`)
                     .then(response => {
                         if (response.data !== '') {
@@ -419,6 +506,11 @@ export default {
                 cod_digemid: null,
                 integrated_query_client_id: null,
                 integrated_query_client_secret: null,
+
+                // GRE - Guía de Remisión Electrónica (nueva API REST)
+                use_gre: false,
+                gre_client_id: null,
+                gre_client_secret: null,
 
             }
         },

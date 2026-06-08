@@ -1,6 +1,9 @@
 import Vue from 'vue';
 window._ = require('lodash');
 window.moment = require('moment');
+window.dayjs = require('dayjs');
+require('dayjs/locale/es');
+window.dayjs.locale('es');
 window.Popper = require('popper.js').default;
 
 try {

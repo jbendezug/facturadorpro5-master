@@ -33,16 +33,22 @@ class Company extends ModelTenant
         'cod_digemid',
         'integrated_query_client_id',
         'integrated_query_client_secret',
-        
+
         'send_document_to_pse',
         'url_send_cdr_pse',
         'url_signature_pse',
         'client_id_pse',
 
+        // GRE — Nueva API REST (RS N° 000123-2022/SUNAT)
+        'use_gre',
+        'gre_client_id',
+        'gre_client_secret',
+
     ];
 
     protected $casts = [
-        'send_document_to_pse' => 'bool'
+        'send_document_to_pse' => 'bool',
+        'use_gre'              => 'bool',
     ];
 
     /**
@@ -91,9 +97,9 @@ class Company extends ModelTenant
         return $this;
     }
 
-    
+
     /**
-     * 
+     *
      * Obtener soap_type_id para registro de entorno en tablas relacionadas
      *
      * @return string

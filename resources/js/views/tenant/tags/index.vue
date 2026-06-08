@@ -44,20 +44,53 @@
             <td>{{ row.description }}</td>
             <td class="text-right">
               <template>
-                <!-- v-if="typeUser === 'admin'" -->
-                <button
-                  type="button"
-                  class="btn waves-effect waves-light btn-xs btn-info"
-                  @click.prevent="clickCreate(row.id)"
-                >Editar</button>
-                <button
-                  type="button"
-                  class="btn waves-effect waves-light btn-xs btn-danger"
-                  @click.prevent="clickDelete(row.id)"
-                >Eliminar</button>
+                <el-tooltip content="Editar tag" placement="top" effect="dark">
+                  <button
+                    type="button"
+                    class="btn waves-effect waves-light btn-xs btn-info"
+                    @click.prevent="clickCreate(row.id)"
+                  >Editar</button>
+                </el-tooltip>
+                <el-tooltip content="Eliminar tag" placement="top" effect="dark">
+                  <button
+                    type="button"
+                    class="btn waves-effect waves-light btn-xs btn-danger"
+                    @click.prevent="clickDelete(row.id)"
+                  >Eliminar</button>
+                </el-tooltip>
               </template>
             </td>
           </tr>
+          <div slot="card" slot-scope="{ index, row }" class="card-content">
+            <div class="card-field">
+              <span class="card-label">#</span>
+              <span class="card-value">{{ index }}</span>
+            </div>
+            <div class="card-field">
+              <span class="card-label">Nombre</span>
+              <span class="card-value">{{ row.name }}</span>
+            </div>
+            <div class="card-field">
+              <span class="card-label">Descripción</span>
+              <span class="card-value">{{ row.description }}</span>
+            </div>
+            <div class="card-actions">
+              <el-tooltip content="Editar tag" placement="top">
+                <button
+                  type="button"
+                  class="btn btn-info btn-sm"
+                  @click.prevent="clickCreate(row.id)"
+                >Editar</button>
+              </el-tooltip>
+              <el-tooltip content="Eliminar tag" placement="top">
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  @click.prevent="clickDelete(row.id)"
+                >Eliminar</button>
+              </el-tooltip>
+            </div>
+          </div>
         </data-table>
       </div>
 

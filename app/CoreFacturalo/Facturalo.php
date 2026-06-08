@@ -31,6 +31,9 @@ use App\CoreFacturalo\WS\Services\BillSender;
 use App\CoreFacturalo\WS\Services\ExtService;
 use App\CoreFacturalo\WS\Services\SummarySender;
 use App\CoreFacturalo\WS\Services\SunatEndpoints;
+use App\CoreFacturalo\WS\Services\GREClient;
+use App\CoreFacturalo\WS\Services\OAuthSunatService;
+use App\CoreFacturalo\WS\Response\GREResult;
 use App\CoreFacturalo\Helpers\QrCode\QrCodeGenerate;
 use App\CoreFacturalo\WS\Services\ConsultCdrService;
 use App\CoreFacturalo\Helpers\Storage\StorageDocument;
@@ -678,12 +681,54 @@ class Facturalo
 
     private function senderXmlSigned()
     {
+        // Bifurcación GRE: si es dispatch y usa el nuevo esquema REST (RS N° 000123-2022)
+        if ($this->type === 'dispatch' && $this->company->use_gre) {
+            return $this->senderXmlSignedGRE();
+        }
+
+        // Flujo normal SOAP para todos los demás documentos
         $this->setDataSoapType();
         $sender = in_array($this->type, ['summary', 'voided'])?new SummarySender():new BillSender();
         $sender->setClient($this->wsClient);
         $sender->setCodeProvider(new XmlErrorCodeProvider());
 
         return $sender->send($this->document->filename, $this->xmlSigned);
+    }
+
+    /**
+     * Envía la Guía de Remisión usando la nueva API REST GRE de SUNAT.
+     * RS N° 000123-2022/SUNAT — vigente desde enero 2024.
+     *
+     * @return GREResult
+     * @throws \Exception si falta client_id o client_secret
+     */
+    private function senderXmlSignedGRE()
+    {
+        // Validar que la empresa tenga credenciales OAuth configuradas
+        if (empty($this->company->gre_client_id) || empty($this->company->gre_client_secret)) {
+            throw new \Exception(
+                'Para usar GRE debe configurar client_id y client_secret OAuth de SUNAT. ' .
+                'Obténgalos en Clave SOL → Mis aplicaciones.'
+            );
+        }
+
+        // Crear servicio OAuth para obtener/renovar tokens
+        $oauthService = new OAuthSunatService(
+            $this->company->number,               // RUC
+            $this->company->gre_client_id,        // client_id OAuth
+            $this->company->gre_client_secret,    // client_secret OAuth
+            $this->isDemo
+        );
+
+        // Crear cliente GRE (REST)
+        $greClient = new GREClient(
+            $oauthService,
+            $this->company->number,
+            $this->isDemo
+        );
+
+        // Enviar a SUNAT (POST JSON con XML firmado base64)
+        return $greClient->send($this->document->filename, $this->xmlSigned);
     }
 
     public function senderXmlSignedBill()
@@ -751,6 +796,12 @@ class Facturalo
     {
         $res = $this->senderXmlSigned();
 
+        // Bifurcación GRE: manejo diferenciado para la nueva API REST
+        if ($res instanceof GREResult) {
+            return $this->processGREResult($res);
+        }
+
+        // Flujo normal para SOAP (BillResult)
         if($res->isSuccess()) {
 
             $cdrResponse = $res->getCdrResponse();
@@ -784,6 +835,52 @@ class Facturalo
             $this->validationCodeResponse($code, $message);
 
         }
+    }
+
+    /**
+     * Procesa la respuesta de la API REST GRE de SUNAT.
+     *
+     * GRE NO retorna CDR (Constancia de Recepción):
+     * - Código 0 = aceptado
+     * - Códigos 2000-3999 = observado (aceptado con advertencias)
+     * - Otros códigos = rechazado
+     *
+     * @param GREResult $res
+     * @throws Exception si SUNAT rechaza el documento
+     */
+    private function processGREResult(GREResult $res)
+    {
+        if (!$res->isSuccess()) {
+            // Error de comunicación o credenciales OAuth
+            $code = $res->getCode() ?? 'GRE_ERROR';
+            $description = $res->getDescription() ?? 'Error desconocido en GRE';
+
+            $this->response = [
+                'sent' => false,
+                'code' => $code,
+                'description' => $description
+            ];
+
+            throw new Exception("GRE Error - Code: {$code}; Description: {$description}");
+        }
+
+        // SUNAT respondió correctamente
+        $code = $res->getCode();
+        $description = $res->getDescription();
+
+        // GRE no genera CDR, solo almacenar respuesta JSON
+        $this->uploadFile(json_encode($res->getRawResponse(), JSON_PRETTY_PRINT), 'gre_response');
+
+        $this->response = [
+            'sent' => true,
+            'code' => $code,
+            'description' => $description,
+            'num_ticket' => $res->getNumTicket(),
+            'gre' => true  // Flag para identificar que es respuesta GRE
+        ];
+
+        // Validar código de respuesta
+        $this->validationCodeResponse($code, $description);
     }
 
     public function validationCodeResponse($code, $message)
@@ -930,7 +1027,7 @@ class Facturalo
                 }
 
             } else {
-                
+
                 //enviar cdr a pse
                 $this->sendCdrToPse($res->getCdrZip(), $this->document);
                 //enviar cdr a pse

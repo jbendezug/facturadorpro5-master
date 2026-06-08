@@ -188,7 +188,21 @@
     <script src="{{asset('porto-light/js/custom.js')}}"></script>
     <script src="{{asset('porto-light/js/jquery.xml2json.js')}}"></script>
 
+    <i id="themeToggle" class="fas fa-moon" style="position:fixed;bottom:70px;right:10px;z-index:9998;cursor:pointer;font-size:20px;color:#64748b;background:#fff;border-radius:50%;padding:10px;box-shadow:0 2px 8px rgba(0,0,0,.15);" onclick="toggleTheme()"></i>
     <script>
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle('dark-theme');
+            const icon = document.getElementById('themeToggle');
+            const isDark = body.classList.contains('dark-theme');
+            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+            const icon = document.getElementById('themeToggle');
+            if (icon) icon.className = 'fas fa-sun';
+        }
 
         function parseXMLToJSON(source)
         {
@@ -207,8 +221,30 @@
             $('#dn-toggle').removeClass('show');
             $('#dn-menu').removeClass('show');
         });
-
     </script>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <a href="/dashboard" class="bottom-nav-item">
+            <i class="fas fa-chart-pie"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/documents" class="bottom-nav-item">
+            <i class="fas fa-file-invoice"></i>
+            <span>Docs</span>
+        </a>
+        <a href="/items" class="bottom-nav-item">
+            <i class="fas fa-box"></i>
+            <span>Items</span>
+        </a>
+        <a href="/persons" class="bottom-nav-item">
+            <i class="fas fa-users"></i>
+            <span>Clientes</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="event.preventDefault(); document.querySelector('.sidebar-left .toggle-sidebar-left')?.click();">
+            <i class="fas fa-bars"></i>
+            <span>Menú</span>
+        </a>
+    </nav>
     <!-- <script src="//code.tidio.co/1vliqewz9v7tfosw5wxiktpkgblrws5w.js"></script> -->
 </body>
 </html>

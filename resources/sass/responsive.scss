@@ -6,9 +6,19 @@ File: scss
 */
 
 
+/* Box-sizing reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
 /*==============================================================
- For Laptop & above all (1650px)
- ============================================================== */
+  For Laptop & above all (1650px)
+  ============================================================== */
 
 @media(min-width:1650px) {
     .widget-app-columns {
@@ -315,5 +325,175 @@ File: scss
 
     .el-dialog {
         width: 90% !important;
+    }
+}
+
+/* Touch-friendly inputs */
+@media(max-width: 767px) {
+    input, select, textarea, button, .el-button, .el-input__inner {
+        min-height: 44px !important;
+        font-size: 16px !important;
+    }
+    .content-body {
+        padding: 10px !important;
+    }
+}
+
+/* Table horizontal scroll on mobile */
+@media(max-width: 768px) {
+    .el-table {
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+    }
+    .el-table__body-wrapper {
+        overflow-x: auto;
+    }
+}
+
+/* Formularios responsive - apilar columnas en mobile */
+@media(max-width: 767px) {
+    .el-form .el-row .el-col {
+        width: 100% !important;
+        margin-bottom: 10px;
+    }
+    .el-form-item {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .el-form-item__label {
+        width: 100% !important;
+        text-align: left !important;
+        padding-bottom: 4px;
+    }
+    .el-form-item__content {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+    .el-dialog .el-form .el-row .el-col {
+        width: 100% !important;
+    }
+    .el-dialog {
+        width: 95% !important;
+        margin-top: 5vh !important;
+    }
+}
+
+/* Table → Cards en mobile */
+@media(max-width: 767px) {
+    .desktop-table { display: none; }
+    .mobile-cards { display: block; }
+}
+@media(min-width: 768px) {
+    .desktop-table { display: block; }
+    .mobile-cards { display: none; }
+}
+
+.mobile-cards {
+    display: none;
+}
+
+.card-item {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+.card-item .card-field {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 14px;
+}
+
+.card-item .card-field:last-child {
+    border-bottom: none;
+}
+
+.card-item .card-label {
+    color: #64748b;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-right: 8px;
+}
+
+.card-item .card-value {
+    text-align: right;
+    color: #1e293b;
+    word-break: break-word;
+}
+
+.card-item .card-actions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e8e8e8;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    justify-content: space-around;
+    padding: 4px 0;
+    box-shadow: 0 -2px 8px rgba(0,0,0,.08);
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 10px;
+    transition: color .2s;
+    min-width: 60px;
+}
+
+.bottom-nav-item i {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item:active,
+.bottom-nav-item.active {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+@media(max-width: 767px) {
+    .mobile-bottom-nav {
+        display: flex;
+    }
+    body {
+        padding-bottom: 56px;
+    }
+}
+
+/* Dialog full-width en mobile */
+@media(max-width: 480px) {
+    .el-dialog {
+        width: 100% !important;
+        margin: 0 !important;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    .el-dialog__body {
+        padding: 15px !important;
     }
 }

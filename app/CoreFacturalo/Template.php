@@ -28,6 +28,12 @@ class Template
 
     public function xml($template, $company, $document)
     {
+        // Bifurcación GRE: si es dispatch y la empresa usa el nuevo esquema REST
+        // (RS N° 000123-2022/SUNAT), usar el template dispatch_gre.blade.php
+        if ($template === 'dispatch' && isset($company->use_gre) && $company->use_gre) {
+            $template = 'dispatch_gre';
+        }
+
         return self::render('xml.'.$template, $company, $document);
     }
 

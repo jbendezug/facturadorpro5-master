@@ -1,6 +1,6 @@
 <template>
-    <div v-loading="loading_submit">
-        <div class="row ">
+    <div>
+        <div class="row" v-show="!loading_submit">
             <div class="col-md-12 col-lg-12 col-xl-12 ">
                 <div class="row" v-if="applyFilter">
                     <div class="col-lg-4 col-md-4 col-sm-12 pb-2">
@@ -55,7 +55,8 @@
                 </div>
             </div>
 
-            <div class="col-md-12">
+            <!-- Vista tabla (escritorio) -->
+            <div class="col-md-12 desktop-table">
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
@@ -80,6 +81,38 @@
                         </el-pagination>
                     </div>
                 </div>
+            </div>
+
+            <!-- Vista cards (mobile) -->
+            <div class="col-md-12 mobile-cards" v-if="$slots.card">
+                <div
+                    class="card-item"
+                    v-for="(row, index) in records"
+                    :key="row.id || index"
+                >
+                    <slot
+                        name="card"
+                        :row="row"
+                        :index="customIndex(index)"
+                    ></slot>
+                </div>
+                <div class="text-center mt-3">
+                    <el-pagination
+                        @current-change="getRecords"
+                        layout="total, prev, pager, next"
+                        :total="pagination.total"
+                        :current-page.sync="pagination.current_page"
+                        :page-size="pagination.per_page"
+                    >
+                    </el-pagination>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skeleton loading -->
+        <div v-show="loading_submit" class="row">
+            <div class="col-md-12">
+                <el-skeleton style="padding: 20px" :rows="5" animated />
             </div>
         </div>
     </div>
