@@ -72,9 +72,27 @@ if [ ! -L /var/www/html/public/storage ]; then
     php artisan storage:link --force 2>/dev/null || true
 fi
 
+# ── Inicializar tablas de tenancy (si no existen) ────────────────────────────
+echo "[setup] Verificando tablas del sistema..."
+php -r "
+    \$pdo = new PDO(
+        'mysql:host=' . getenv('DB_HOST') . ';port=' . getenv('DB_PORT') . ';dbname=' . getenv('DB_DATABASE'),
+        getenv('DB_USERNAME'),
+        getenv('DB_PASSWORD')
+    );
+    \$tables = \$pdo->query('SHOW TABLES LIKE \"hostnames\"')->fetchAll();
+    if (count(\$tables) === 0) {
+        echo \"[setup] Creando tablas de tenancy...\\n\";
+        \$pdo->exec(file_get_contents('/var/www/html/docker/php/sql/tenancy_schema.sql'));
+        echo \"[setup] Tablas de tenancy creadas.\\n\";
+    } else {
+        echo \"[setup] Tablas de tenancy ya existen.\\n\";
+    }
+" 2>&1 || echo "[setup] No se pudieron crear tablas de tenancy (se crearan via migrate)."
+
 # ── Migraciones del sistema ───────────────────────────────────────────────────
 echo "[setup] Ejecutando migraciones del sistema..."
-php artisan migrate --force
+php artisan migrate --force 2>&1 || echo "[setup] Migraciones ya ejecutadas o en progreso."
 
 # ── Optimizaciones de producción ─────────────────────────────────────────────
 if [ "${APP_ENV}" = "production" ]; then

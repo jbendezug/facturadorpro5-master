@@ -1,9 +1,23 @@
-rs                                                                                                                              3.1s
- => => writing image sha256:2cce3132d3804f50fcd8cceeac32534258d14a9f4b198f5c4f8e8050337b7242                                                         0.0s
- => => naming to docker.io/library/facturadorpro5-master-app                                                                                         0.0s
- => [app] resolving provenance for metadata file                                                                                                     0.0s
-root@vmi2112884:/home/jbendezug/containers/facturador_pro/facturadorpro5-master# curl -s http://localhost/login -o /dev/null -w "HTTP %{http_code}\n"
-HTTP 404
-root@vmi2112884:/home/jbendezug/containers/facturador_pro/facturadorpro5-master#
+root@vmi2112884:/home/jbendezug/containers/facturador_pro/facturadorpro5-master# docker logs fac
+turador_app --tail 20
 
-ahora no carga mi pagina ni el sistema
+  SQLSTATE[42S02]: Base table or view not found: 1146 Table 'tenancy.hostname
+  s' doesn't exist
+
+
+[setup] Ejecutando migraciones del sistema...
+
+In Connection.php line 829:
+
+  SQLSTATE[42S02]: Base table or view not found: 1146 Table 'tenancy.hostname
+  s' doesn't exist (Connection: system, SQL: select * from `hostnames` where
+  `fqdn` = midominio.com and `hostnames`.`deleted_at` is null limit 1)
+
+
+In Connection.php line 423:
+
+  SQLSTATE[42S02]: Base table or view not found: 1146 Table 'tenancy.hostname
+  s' doesn't exist
+
+
+root@vmi2112884:/home/jbendezug/containers/facturador_pro/facturadorpro5-master#
