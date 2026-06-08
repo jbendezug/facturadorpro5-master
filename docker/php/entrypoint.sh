@@ -41,7 +41,9 @@ if [ ! -f /var/www/html/vendor/autoload.php ]; then
         --no-dev \
         --optimize-autoloader \
         --prefer-dist \
-        --ignore-platform-reqs
+        --ignore-platform-reqs \
+        --no-scripts 2>&1 || echo "[setup] composer install fallo (continuando)..."
+    composer dump-autoload --optimize 2>&1 || true
 fi
 
 # ── Esperar a MySQL ───────────────────────────────────────────────────────────
