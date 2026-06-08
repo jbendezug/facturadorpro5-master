@@ -38,6 +38,25 @@ File: scss
 
 @import 'element-ui/packages/theme-chalk/src/index';
 
+/*
+ * Fix global para iconos de Element UI cuando el @font-face original
+ * resuelve rutas relativas incorrectas en algunos layouts.
+ */
+@font-face {
+	font-family: 'element-icons-fix';
+	src: url('/fonts/vendor/element-ui/lib/theme-chalk/element-icons.woff') format('woff'),
+		 url('/fonts/vendor/element-ui/lib/theme-chalk/element-icons.ttf') format('truetype'),
+		 url('/fonts/vendor/element-ui/packages/theme-chalk/src/element-icons.woff') format('woff'),
+		 url('/fonts/vendor/element-ui/packages/theme-chalk/src/element-icons.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+[class^='el-icon-'],
+[class*=' el-icon-'] {
+	font-family: 'element-icons-fix' !important;
+}
+
 @import 'components/table';
 @import 'custom';
 @import 'dark-theme';

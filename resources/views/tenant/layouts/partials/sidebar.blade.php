@@ -10,6 +10,14 @@
 <aside id="sidebar-left"
        class="sidebar-left">
     <div class="sidebar-header">
+        <div class="sidebar-search">
+            <input type="text"
+                   id="menuSearch"
+                   class="form-control form-control-sm"
+                   placeholder="Buscar en el menú..."
+                   autocomplete="off">
+            <i class="fas fa-search search-icon"></i>
+        </div>
         <a href="{{route('tenant.dashboard.index')}}"
            class="logo pt-2 pt-md-0">
             @if($vc_company->logo)
@@ -1509,7 +1517,94 @@
                 </ul>
             </nav>
         </div>
+        <style>
+            .sidebar-search {
+                padding: 8px 12px;
+                position: relative;
+            }
+            .sidebar-search .search-icon {
+                position: absolute;
+                left: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94a3b8;
+                font-size: 13px;
+            }
+            .sidebar-search input {
+                padding-left: 28px !important;
+                font-size: 13px;
+                height: 32px;
+                border-radius: 6px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.1);
+                color: #e0e0e0;
+                width: 100%;
+            }
+            .sidebar-search input::placeholder {
+                color: #94a3b8;
+            }
+            .sidebar-search input:focus {
+                background: rgba(255,255,255,0.12);
+                border-color: rgba(255,255,255,0.2);
+                outline: none;
+            }
+            .sidebar-menu-item-hidden {
+                display: none !important;
+            }
+            .sidebar-menu-group-hidden > ul {
+                display: none !important;
+            }
+            .sidebar-search-highlight {
+                background: rgba(59,130,246,0.15) !important;
+                border-radius: 4px;
+            }
+        </style>
         <script>
+            document.getElementById('menuSearch')?.addEventListener('input', function() {
+                var q = this.value.toLowerCase().trim();
+                var items = document.querySelectorAll('.sidebar-left .nav li');
+                var anyVisible = false;
+
+                items.forEach(function(li) {
+                    var text = li.textContent.toLowerCase();
+                    if (!q) {
+                        li.classList.remove('sidebar-menu-item-hidden');
+                        li.classList.remove('sidebar-search-highlight');
+                        return;
+                    }
+                    var match = text.indexOf(q) !== -1;
+                    if (match) {
+                        li.classList.remove('sidebar-menu-item-hidden');
+                        li.classList.add('sidebar-search-highlight');
+                        anyVisible = true;
+                        // Expandir padres
+                        var parent = li.closest('.nav-parent');
+                        if (parent) {
+                            parent.classList.remove('sidebar-menu-item-hidden');
+                            parent.classList.add('nav-expanded');
+                        }
+                    } else {
+                        li.classList.add('sidebar-menu-item-hidden');
+                        li.classList.remove('sidebar-search-highlight');
+                    }
+                });
+
+                // Si no hay resultados, mostrar mensaje
+                var msg = document.getElementById('menuSearchEmpty');
+                if (!q) { if (msg) msg.remove(); return; }
+                if (!anyVisible) {
+                    if (!msg) {
+                        msg = document.createElement('div');
+                        msg.id = 'menuSearchEmpty';
+                        msg.style.cssText = 'padding:20px;text-align:center;color:#94a3b8;font-size:13px;';
+                        msg.textContent = 'No se encontraron resultados';
+                        document.querySelector('.sidebar-left .nano-content')?.appendChild(msg);
+                    }
+                } else {
+                    if (msg) msg.remove();
+                }
+            });
+
             // Maintain Scroll Position
             if (typeof localStorage !== 'undefined') {
                 if (localStorage.getItem('sidebar-left-position') !== null) {

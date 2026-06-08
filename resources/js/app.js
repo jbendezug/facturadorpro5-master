@@ -291,6 +291,7 @@ Vue.component('system-users-form', () => import('./views/system/users/form.vue')
 
 Vue.component('system-certificate-index', () => import('./views/system/certificate/index.vue'));
 Vue.component('system-companies-form', () => import('./views/system/companies/form.vue'));
+Vue.component('system-configurations-visual', () => import('./views/system/configurations/visual.vue'));
 
 Vue.component('system-accounting-index', () => import('@viewsModuleAccount/system/accounting/index.vue'));
 

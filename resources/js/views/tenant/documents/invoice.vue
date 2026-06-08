@@ -12,8 +12,7 @@
                   class="row no-gutters"
                   @submit.prevent="submit">
                 <div class="col-xl-9 col-md-9 col-12">
-                    <div class="row card-header no-gutters align-items-start"
-                         style="background-color: #FFFFFF !important;">
+                    <div class="row card-header no-gutters align-items-start">
                         <div class="col-xl-2 col-md-2 col-12">
                             <logo :path_logo="(company.logo != null) ? `/storage/uploads/logos/${company.logo}` : ''"
                                   :position_class="'text-left'"
@@ -526,7 +525,7 @@
                                                                             <a class=""
                                                                                href="#"
                                                                                @click.prevent="clickAddFee"><i class="fa fa-plus font-weight-bold text-info"></i>
-                                                                                <span style="color: #777777">Agregar cuota</span></a>
+                                                                                <span class="text-muted">Agregar cuota</span></a>
 
                                                                         </label>
                                                                     </td>
@@ -657,7 +656,7 @@
                                                                             <a class=""
                                                                                href="#"
                                                                                @click.prevent="clickAddPayment"><i class="fa fa-plus font-weight-bold text-info"></i>
-                                                                                <span style="color: #777777">Agregar pago</span></a>
+                                                                                <span class="text-muted">Agregar pago</span></a>
 
                                                                         </label>
                                                                     </td>
@@ -880,7 +879,7 @@
                                                                 <a class=""
                                                                    href="#"
                                                                    @click.prevent="clickAddFee"><i class="fa fa-plus font-weight-bold text-info"></i>
-                                                                    <span style="color: #777777">Agregar cuota</span></a>
+                                                                    <span class="text-muted">Agregar cuota</span></a>
 
                                                             </label>
                                                         </td>
@@ -1011,7 +1010,7 @@
                                                                 <a class=""
                                                                    href="#"
                                                                    @click.prevent="clickAddPayment"><i class="fa fa-plus font-weight-bold text-info"></i>
-                                                                    <span style="color: #777777">Agregar pago</span></a>
+                                                                    <span class="text-muted">Agregar pago</span></a>
 
                                                             </label>
                                                         </td>
@@ -1181,7 +1180,7 @@
                                                     <a class=""
                                                        href="#"
                                                        @click.prevent="clickAddPrepayment"><i class="fa fa-plus font-weight-bold text-info"></i>
-                                                        <span style="color: #777777">Agregar comprobante anticipado</span></a>
+                                                        <span class="text-muted">Agregar comprobante anticipado</span></a>
                                                 </label>
                                             </div>
                                         </div>
@@ -1256,7 +1255,7 @@
                                                                         <a class=""
                                                                            href="#"
                                                                            @click.prevent="clickAddGuide"><i class="fa fa-plus font-weight-bold text-info"></i>
-                                                                            <span style="color: #777777">Agregar guía</span></a>
+                                                                            <span class="text-muted">Agregar guía</span></a>
 
                                                                     </label>
                                                                 </td>
@@ -1298,7 +1297,7 @@
                                                                         <a class=""
                                                                            href="#"
                                                                            @click.prevent="clickAddGuide"><i class="fa fa-plus font-weight-bold text-info"></i>
-                                                                            <span style="color: #777777">Agregar guía</span></a>
+                                                                            <span class="text-muted">Agregar guía</span></a>
 
                                                                     </label>
                                                                 </td>

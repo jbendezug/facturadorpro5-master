@@ -14,6 +14,16 @@
                 </div>
               </div>
               <div class="col-md-12" v-if="form.token_false == false">
+                <div class="form-group">
+                  <label class="control-label">Proveedor</label>
+                  <el-select v-model="form.provider" style="width: 100%" @change="onProviderChange">
+                    <el-option label="ApiPeru" value="apiperu"></el-option>
+                    <el-option label="ApiMigo" value="apimigo"></el-option>
+                    <el-option label="Personalizada" value="custom"></el-option>
+                  </el-select>
+                </div>
+              </div>
+              <div class="col-md-12" v-if="form.token_false == false">
                 <div class="form-group" :class="{'has-danger': errors.url_apiruc}">
                   <label class="control-label">
                     URL
@@ -65,6 +75,7 @@ export default {
     await this.$http.get(`/${this.resource}/apiruc`).then(response => {
         this.form.url_apiruc = response.data.url_apiruc;
         this.form.token_apiruc = response.data.token_apiruc;
+        this.form.provider = this.detectProvider(this.form.url_apiruc);
 
         if (this.form.token_apiruc == 'false') {
           this.form.token_false = true;
@@ -77,8 +88,31 @@ export default {
       this.form = {
         url_apiruc: null,
         token_apiruc: null,
-        token_false: false
+        token_false: false,
+        provider: 'apiperu'
       };
+    },
+    onProviderChange(provider) {
+      if (provider === 'apiperu') {
+        this.form.url_apiruc = 'https://apiperu.dev';
+      }
+
+      if (provider === 'apimigo') {
+        this.form.url_apiruc = 'https://api.migo.pe';
+      }
+    },
+    detectProvider(url) {
+      const source = (url || '').toLowerCase();
+
+      if (source.includes('api.migo.pe') || source.includes('/api/v1/ruc')) {
+        return 'apimigo';
+      }
+
+      if (source.includes('apiperu.dev')) {
+        return 'apiperu';
+      }
+
+      return 'custom';
     },
     submit() {
       this.loading_submit = true;

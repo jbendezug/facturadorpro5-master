@@ -11,8 +11,12 @@ class ServiceData
     {
         $configuration = Configuration::first();
 
-        $url = $configuration->url_apiruc =! '' ? $configuration->url_apiruc : config('configuration.api_service_url');
-        $token = $configuration->token_apiruc =! '' ? $configuration->token_apiruc : config('configuration.api_service_token');
+        $url = !empty($configuration->url_apiruc) ? trim($configuration->url_apiruc) : config('configuration.api_service_url');
+        $token = !empty($configuration->token_apiruc) ? trim($configuration->token_apiruc) : config('configuration.api_service_token');
+
+        if (self::isMigoProvider($url)) {
+            return self::requestMigo($url, $token, $number);
+        }
 
         $client = new Client(['base_uri' => $url, 'verify' => false]);
         $parameters = [
@@ -28,6 +32,50 @@ class ServiceData
         $response = json_decode($res->getBody()->getContents(), true);
 
         return $response;
+    }
+
+    private static function isMigoProvider($url)
+    {
+        $source = strtolower((string) $url);
+
+        return strpos($source, 'api.migo.pe') !== false || strpos($source, '/api/v1/ruc') !== false;
+    }
+
+    private static function requestMigo($url, $token, $number)
+    {
+        $base = rtrim((string) $url, '/');
+        $endpoint = strpos(strtolower($base), '/api/v1/ruc') !== false ? $base : $base . '/api/v1/ruc';
+
+        $client = new Client(['verify' => false]);
+        $res = $client->request('POST', $endpoint, [
+            'http_errors' => false,
+            'connect_timeout' => 8,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+            'json' => [
+                'token' => $token,
+                'ruc' => $number,
+            ],
+        ]);
+
+        $data = json_decode($res->getBody()->getContents(), true);
+
+        if (!is_array($data)) {
+            return ['success' => false, 'message' => 'Respuesta invalida de API Migo'];
+        }
+
+        if (!array_key_exists('success', $data) || !$data['success']) {
+            return ['success' => false, 'message' => $data['message'] ?? 'No se encontraron datos'];
+        }
+
+        return [
+            'success' => true,
+            'data' => [
+                'nombre_o_razon_social' => $data['nombre_o_razon_social'] ?? ($data['nombre'] ?? ''),
+            ],
+        ];
     }
 
     /*

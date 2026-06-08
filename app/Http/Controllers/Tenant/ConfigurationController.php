@@ -8,6 +8,7 @@ use App\Models\Tenant\Configuration;
 use App\Models\Tenant\Item;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Tenant\Catalogs\{
@@ -374,10 +375,14 @@ class ConfigurationController extends Controller
 
     public function tables()
     {
-        $affectation_igv_types = AffectationIgvType::whereActive()->get();
-        $global_discount_types = ChargeDiscountType::whereIn('id', ['02', '03'])->whereActive()->get();
+        $tables = Cache::remember('tenant.configurations.tables', now()->addMinutes(30), function () {
+            return [
+                'affectation_igv_types' => AffectationIgvType::whereActive()->get(),
+                'global_discount_types' => ChargeDiscountType::whereIn('id', ['02', '03'])->whereActive()->get(),
+            ];
+        });
 
-        return compact('affectation_igv_types', 'global_discount_types');
+        return $tables;
     }
 
     public function visualDefaults()

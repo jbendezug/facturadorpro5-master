@@ -188,22 +188,7 @@
     <script src="{{asset('porto-light/js/custom.js')}}"></script>
     <script src="{{asset('porto-light/js/jquery.xml2json.js')}}"></script>
 
-    <i id="themeToggle" class="fas fa-moon" style="position:fixed;bottom:70px;right:10px;z-index:9998;cursor:pointer;font-size:20px;color:#64748b;background:#fff;border-radius:50%;padding:10px;box-shadow:0 2px 8px rgba(0,0,0,.15);" onclick="toggleTheme()"></i>
     <script>
-        function toggleTheme() {
-            const body = document.body;
-            body.classList.toggle('dark-theme');
-            const icon = document.getElementById('themeToggle');
-            const isDark = body.classList.contains('dark-theme');
-            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        }
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-theme');
-            const icon = document.getElementById('themeToggle');
-            if (icon) icon.className = 'fas fa-sun';
-        }
-
         function parseXMLToJSON(source)
         {
             let transform = $.xml2json(source);

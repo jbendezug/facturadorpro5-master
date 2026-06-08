@@ -4,6 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem('system_theme') === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) {
+                // Ignore storage access errors and keep default theme.
+            }
+        })();
+    </script>
+
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -50,6 +62,7 @@
     <link rel="stylesheet" href="{{asset('porto-light/vendor/bootstrap-timepicker/css/bootstrap-timepicker.css')}}" />
 
     <link rel="stylesheet" href="{{asset('porto-light/vendor/jquery-loading/dist/jquery.loading.css')}}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('porto-light/master/style-switcher/style-switcher.css')}}">
 
     @stack('styles')
 
@@ -68,6 +81,28 @@
         ul.nav-main > li.nav-active > a {
             box-shadow: 2px 0 0 #0088CC inset;
         }
+
+        html.dark ul.nav-main li.nav-active:not(.nav-parent) > a,
+        html.dark ul.nav-main li .nav-children li.nav-active:not(.nav-parent) > a,
+        html.dark .sidebar-blue ul.nav-main li.nav-active:not(.nav-parent) > a,
+        html.dark .sidebar-blue ul.nav-main li .nav-children li.nav-active:not(.nav-parent) > a {
+            background: #1f3b5f !important;
+            color: #f8fafc !important;
+            box-shadow: 0 0 0 1px #2f4d73 inset;
+        }
+
+        html.dark ul.nav-main li.nav-active:not(.nav-parent) > a i,
+        html.dark ul.nav-main li .nav-children li.nav-active:not(.nav-parent) > a i {
+            color: #f8fafc !important;
+        }
+
+        html.dark ul.nav-main > li > a:hover,
+        html.dark ul.nav-main li .nav-children li a:hover,
+        html.dark ul.nav-main > li > a:focus,
+        html.dark ul.nav-main li .nav-children li a:focus {
+            background-color: #162944 !important;
+            color: #dbeafe !important;
+        }
     </style>
 </head>
 <body class="pr-0">
@@ -81,6 +116,7 @@
             <!-- end: sidebar -->
             <section role="main" class="content-body" id="main-wrapper">
               @yield('content')
+                            @include('system.layouts.partials.sidebar_styles')
             </section>
         </div>
     </section>
