@@ -29,7 +29,11 @@ Mejorar tiempos de respuesta del sistema sin introducir cambios de alto riesgo.
 - No fue posible ejecutar `php -l` en este entorno porque no hay binario `php` disponible en terminal.
 
 ## Siguientes pasos propuestos
-1. Cachear otras tablas maestras frecuentes en formularios grandes. ✅ Parcial
-2. Revisar busqueda remota de clientes y documentos, donde hay mas impacto percibido. ✅ Parcial (RUC/DNI cacheados 24h)
-3. Auditar endpoints con `all()` y `get()` sin paginacion en panel tenant/system.
-4. Preparar una fase separada para cache/redis/config cache de despliegue.
+1. Cachear otras tablas maestras frecuentes en formularios grandes. ✅
+2. Revisar busqueda remota de clientes y documentos. ✅ (RUC/DNI 24h)
+3. Auditar endpoints con `all()` y `get()` sin paginacion. ✅ (PurchaseController)
+4. Preparar Redis para cache de aplicacion. ✅ (CACHE_DRIVER=redis)
+
+### Pendiente
+- Migrar configuracion de cache a variable de entorno en produccion.
+- Agregar monitoreo de hit ratio de cache (redis info).

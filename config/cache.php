@@ -69,6 +69,11 @@ return [
         ],
 
         'redis' => [
+            'driver' => 'redis',
+            'connection' => 'cache',
+        ],
+
+        'redis_tenancy' => [
             'driver' => 'redis_tenancy',
             'connection' => 'default',
         ],
