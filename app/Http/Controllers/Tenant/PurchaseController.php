@@ -33,9 +33,10 @@
     use App\Traits\OfflineTrait;
     use DOMDocument;
     use Exception;
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\DB;
-    use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
     use Modules\Finance\Http\Controllers\PaymentFileController;
     use Modules\Finance\Traits\FinanceTrait;
     use Modules\Inventory\Models\Warehouse;
@@ -129,21 +130,26 @@
         {
             $suppliers = $this->table('suppliers');
             $establishment = Establishment::where('id', auth()->user()->establishment_id)->first();
-            $currency_types = CurrencyType::whereActive()->get();
-            $document_types_invoice = DocumentType::DocumentsActiveToPurchase()->get();
-            $discount_types = ChargeDiscountType::whereType('discount')->whereLevel('item')->get();
-            $charge_types = ChargeDiscountType::whereType('charge')->whereLevel('item')->get();
+
+            $cached = Cache::remember('tenant.purchases.tables', now()->addMinutes(30), function () {
+                return [
+                    'currency_types' => CurrencyType::whereActive()->get(),
+                    'document_types_invoice' => DocumentType::DocumentsActiveToPurchase()->get(),
+                    'discount_types' => ChargeDiscountType::whereType('discount')->whereLevel('item')->get(),
+                    'charge_types' => ChargeDiscountType::whereType('charge')->whereLevel('item')->get(),
+                    'payment_method_types' => PaymentMethodType::getPaymentMethodTypes(),
+                    'payment_conditions' => GeneralPaymentCondition::get(),
+                ];
+            });
+
             $company = Company::active();
-            $payment_method_types = PaymentMethodType::getPaymentMethodTypes();
-            // $payment_method_types = PaymentMethodType::all();
             $payment_destinations = $this->getPaymentDestinations();
             $customers = $this->getPersons('customers');
             $configuration = Configuration::first();
-            $payment_conditions = GeneralPaymentCondition::get();
             $warehouses = Warehouse::get();
 
-            return compact('suppliers', 'establishment', 'currency_types', 'discount_types', 'configuration', 'payment_conditions',
-                'charge_types', 'document_types_invoice', 'company', 'payment_method_types', 'payment_destinations', 'customers', 'warehouses');
+            return array_merge(compact('suppliers', 'establishment', 'company', 'payment_destinations',
+                'customers', 'configuration', 'warehouses'), $cached);
         }
 
         public function table($table)
