@@ -84,7 +84,12 @@ php -r "
     if (count(\$tables) === 0) {
         echo \"[setup] Creando tablas de tenancy...\\n\";
         \$pdo->exec(file_get_contents('/var/www/html/docker/php/sql/tenancy_schema.sql'));
-        echo \"[setup] Tablas de tenancy creadas.\\n\";
+        // Registrar en migrations para que php artisan migrate no intente crearlas de nuevo
+        \$pdo->exec('CREATE TABLE IF NOT EXISTS migrations (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, migration VARCHAR(255) NOT NULL, batch INT NOT NULL) ENGINE=InnoDB');
+        \$stmt = \$pdo->prepare('INSERT IGNORE INTO migrations (migration, batch) VALUES (?, ?)');
+        \$stmt->execute(['2017_01_01_000003_tenancy_websites', 1]);
+        \$stmt->execute(['2017_01_01_000005_tenancy_hostnames', 1]);
+        echo \"[setup] Tablas de tenancy creadas y registradas.\\n\";
     } else {
         echo \"[setup] Tablas de tenancy ya existen.\\n\";
     }
