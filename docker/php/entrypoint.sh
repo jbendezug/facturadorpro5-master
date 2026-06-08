@@ -102,6 +102,65 @@ php -r "
 echo "[setup] Ejecutando migraciones del sistema..."
 php artisan migrate --force 2>&1 || echo "[setup] Migraciones ya ejecutadas o en progreso."
 
+# ── Crear tenant por defecto si no existe ninguno ──────────────────────────
+echo "[setup] Verificando hostnames existentes..."
+php -r "
+    \$pdo = new PDO(
+        'mysql:host=' . getenv('DB_HOST') . ';port=' . getenv('DB_PORT') . ';dbname=' . getenv('DB_DATABASE'),
+        getenv('DB_USERNAME'),
+        getenv('DB_PASSWORD')
+    );
+    \$count = \$pdo->query('SELECT COUNT(*) FROM hostnames')->fetchColumn();
+    if (\$count == 0) {
+        echo \"[setup] Creando tenant por defecto...\\n\";
+        \$fqdn = getenv('APP_URL_BASE') ?: 'localhost';
+        \$uuid = substr(bin2hex(random_bytes(16)), 0, 32);
+        // Insert website
+        \$pdo->prepare('INSERT INTO websites (uuid, created_at, updated_at) VALUES (?, NOW(), NOW())')->execute([\$uuid]);
+        \$websiteId = \$pdo->lastInsertId();
+        // Insert hostname
+        \$pdo->prepare('INSERT INTO hostnames (fqdn, website_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW())')->execute([\$fqdn, \$websiteId]);
+        // Create tenant database
+        \$pdo->exec('CREATE DATABASE IF NOT EXISTS \`' . \$uuid . '\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+        echo \"[setup] Tenant \$fqdn creado (BD: \$uuid).\\n\";
+    } else {
+        echo \"[setup] Ya existen \$count hostname(s).\\n\";
+    }
+" 2>&1 || echo "[setup] No se pudo crear tenant por defecto."
+
+# ── Crear usuario MySQL del tenant si no existe ──────────────────────────────
+echo "[setup] Verificando usuarios MySQL de tenants..."
+php -r "
+    try {
+        \$pdoSystem = new PDO(
+            'mysql:host=' . getenv('DB_HOST') . ';port=' . getenv('DB_PORT'),
+            getenv('DB_USERNAME'),
+            getenv('DB_PASSWORD')
+        );
+        \$websites = \$pdoSystem->query('SELECT id, uuid, created_at FROM ' . getenv('DB_DATABASE') . '.websites')->fetchAll(PDO::FETCH_OBJ);
+        foreach (\$websites as \$w) {
+            // Check if user exists
+            \$users = \$pdoSystem->query(\"SELECT user FROM mysql.user WHERE user = '\$w->uuid'\")->fetchAll();
+            if (count(\$users) == 0) {
+                // Calculate password using same algorithm as hyn DefaultPasswordGenerator
+                \$key = getenv('APP_KEY') ?: 'base64:unknown';
+                \$password = md5(\"{$w->id}.\$w->uuid.\$w->created_at.\$key\");
+                // Create user and grant
+                \$pdoSystem->exec(\"CREATE USER IF NOT EXISTS '\$w->uuid'@'%' IDENTIFIED WITH mysql_native_password BY '\$password'\");
+                \$pdoSystem->exec(\"GRANT ALL PRIVILEGES ON \`\$w->uuid\`.* TO '\$w->uuid'@'%'\");
+                \$pdoSystem->exec('FLUSH PRIVILEGES');
+                echo \"[setup] Usuario MySQL \$w->uuid creado.\\n\";
+            }
+        }
+    } catch (Exception \$e) {
+        echo \"[setup] Error creando usuarios: \" . \$e->getMessage() . \"\\n\";
+    }
+" 2>&1 || echo "[setup] No se pudieron crear usuarios MySQL."
+
+# ── Migraciones de tenants ──────────────────────────────────────────────────
+echo "[setup] Ejecutando migraciones de tenants..."
+php artisan tenancy:migrate --force 2>&1 || echo "[setup] Migraciones de tenants ya ejecutadas."
+
 # ── Optimizaciones de producción ─────────────────────────────────────────────
 if [ "${APP_ENV}" = "production" ]; then
     echo "[setup] Aplicando optimizaciones de producción..."
