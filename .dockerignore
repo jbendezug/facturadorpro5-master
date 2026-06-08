@@ -16,6 +16,16 @@ npm-debug.log
 # Logs
 storage/logs/*.log
 storage/debugbar/
+storage/debugbar/*.json
+
+# Scripts locales y docs (ya eliminados del repo)
+task.bat
+script-update.sh
+documentacion/
+icon_pro5.png
+AGENTS.md
+public/web.config
+docker/nginx/nginx-proxy.conf
 
 # Framework cache (se regeneran en runtime)
 storage/framework/cache/data/
@@ -42,6 +52,4 @@ script-update.sh
 task.bat
 
 # Docs
-README.md
-*.md
 icon_pro5.png

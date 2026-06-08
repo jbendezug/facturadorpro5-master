@@ -43,7 +43,7 @@ cmd_install() {
     # Generar APP_KEY si está vacío
     if grep -q "^APP_KEY=$" .env; then
         info "Generando APP_KEY ..."
-        KEY=$(docker run --rm php:7.4-cli php -r "echo 'base64:'.base64_encode(random_bytes(32));")
+        KEY=$(docker run --rm php:8.3-cli php -r "echo 'base64:'.base64_encode(random_bytes(32));")
         sed -i "s|^APP_KEY=.*|APP_KEY=${KEY}|" .env
         info "APP_KEY generada."
     fi
@@ -65,7 +65,7 @@ cmd_update() {
     info "=== ACTUALIZACIÓN ==="
 
     info "[1/4] Pull del repositorio ..."
-    git pull
+    git pull origin "${BRANCH:-master}"
 
     info "[2/4] Reconstruyendo imagen ..."
     docker compose -f "$COMPOSE_FILE" build app

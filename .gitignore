@@ -20,6 +20,11 @@ node_modules/
 *.log
 /storage/logs/
 
+# Debugbar cache (runtime, no debe estar en repo)
+/storage/debugbar/
+/storage/debugbar/*.json
+/storage/debugbar/*.json.gz
+
 # Assets compilados (se generan con npm run dev/prod)
 /public/js/
 /public/css/
