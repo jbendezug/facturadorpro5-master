@@ -91,6 +91,7 @@ php -r "
         \$stmt = \$pdo->prepare('INSERT IGNORE INTO migrations (migration, batch) VALUES (?, ?)');
         \$stmt->execute(['2017_01_01_000003_tenancy_websites', 1]);
         \$stmt->execute(['2017_01_01_000005_tenancy_hostnames', 1]);
+        \$stmt->execute(['2018_04_06_000001_tenancy_websites_needs_db_host', 2]);
         echo \"[setup] Tablas de tenancy creadas y registradas.\\n\";
     } else {
         echo \"[setup] Tablas de tenancy ya existen.\\n\";
@@ -104,9 +105,9 @@ php artisan migrate --force 2>&1 || echo "[setup] Migraciones ya ejecutadas o en
 # ── Optimizaciones de producción ─────────────────────────────────────────────
 if [ "${APP_ENV}" = "production" ]; then
     echo "[setup] Aplicando optimizaciones de producción..."
-    # config:cache: CACHE_DRIVER ya está forzado a 'file' en este entrypoint
-    php artisan config:cache
-    php artisan view:cache 2>/dev/null || echo "[setup] view:cache omitido (directorios de vistas incompletos — no crítico)"
+    php artisan config:cache 2>&1 || echo "[setup] config:cache omitido (no crítico)"
+    php artisan view:cache 2>/dev/null || echo "[setup] view:cache omitido (no crítico)"
+    php artisan route:cache 2>/dev/null || echo "[setup] route:cache omitido (no crítico)"
 fi
 
 echo "========================================"

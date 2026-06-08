@@ -60,10 +60,22 @@ docker exec -i facturador_mysql mysql -uroot -p<DB_PASSWORD> < backup.sql
 - `docker-compose down` NO borra los datos.
 - Para borrar datos: `docker volume rm facturadorpro6_mysql8_data`.
 
+### Primer deploy (BD limpia)
+El entrypoint automatiza todo el proceso, pero hay que tener en cuenta:
+
+1. `vendor/` debe existir. Si el clone es fresco, el entrypoint ejecuta `composer install --no-scripts` y luego `dump-autoload`. Si el lockfile y composer.json no coinciden (por cambios manuales), fallara. **Siempre hacer `composer update` local y pushear el lockfile antes de deployar.**
+2. Las tablas de tenancy (`websites`, `hostnames`) se crean via SQL antes de que Laravel bootstrapee (el RouteServiceProvider las necesita). Luego se registran como migradas para que `migrate` no intente crearlas de nuevo.
+3. `php artisan migrate --force` corre todas las migrations del sistema (usuarios, configuraciones, planes, etc.).
+4. Si alguna migracion falla porque la tabla ya existe, el entrypoint continua con `||` y el container arranca igual. Revisar logs con `docker logs facturador_app`.
+
+### FORCE_HTTPS
+- `.env.example` trae `FORCE_HTTPS=false`. Pon `true` solo si tu Nginx externo ya termina SSL.
+- Si activas sin SSL configurado, el navegador hara bucle de redireccion.
+
 ### Queue (cola de trabajos)
 - Procesa envio de facturas a SUNAT en segundo plano.
-- Si se cae, revisar logs: `docker logs facturador_queue --tail 50`.
-- Error comun: vendor incompatible con PHP. Solucion: `docker-compose build --no-cache queue`.
+- Si se cae: `docker logs facturador_queue --tail 50`.
+- Error comun: vendor incompatible con PHP (imagen vieja). Solucion: `docker-compose build --no-cache queue` o taguear la imagen de app: `docker tag facturadorpro6_app queue`.
 
 ### Scheduler (tareas programadas)
 - Solo incluido en `docker-compose.prod.yml`.
@@ -72,7 +84,6 @@ docker exec -i facturador_mysql mysql -uroot -p<DB_PASSWORD> < backup.sql
 ### Actualizacion
 ```bash
 ./deploy.sh update
-# Hace: git pull → rebuild app → reinicia servicios → cache:clear
 ```
 
 ## Comandos utiles
