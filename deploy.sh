@@ -34,7 +34,7 @@ cmd_install() {
 
     [ ! -f ".env" ] && {
         warn ".env no encontrado. Copiando desde .env.prod.example ..."
-        cp .env.prod.example .env
+        cp .env.example .env
         warn "EDITA el archivo .env antes de continuar (DB_PASSWORD, APP_KEY, dominio)."
         warn "Luego vuelve a ejecutar: ./deploy.sh install"
         exit 0
