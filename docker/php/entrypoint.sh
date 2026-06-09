@@ -68,6 +68,21 @@ while [ "$i" -le 30 ]; do
 done
 echo "[setup] MySQL listo."
 
+# ── Assets compilados (mix-manifest.json) ──────────────────────────────────────
+if [ ! -f /var/www/html/public/mix-manifest.json ]; then
+    echo "[setup] Generando mix-manifest.json por defecto..."
+    mkdir -p /var/www/html/public
+    cat > /var/www/html/public/mix-manifest.json << 'EOF'
+{
+    "/js/app.js": "/js/app.js",
+    "/js/manifest.js": "/js/manifest.js",
+    "/css/app.css": "/css/app.css",
+    "/css/auth.css": "/css/auth.css",
+    "/js/vendor.js": "/js/vendor.js"
+}
+EOF
+fi
+
 # ── Symlink storage ───────────────────────────────────────────────────────────
 if [ ! -L /var/www/html/public/storage ]; then
     echo "[setup] Creando symlink storage..."
