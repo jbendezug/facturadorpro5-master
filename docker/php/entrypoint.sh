@@ -139,6 +139,10 @@ php artisan tinker --execute="
     }
 " 2>&1 || echo "[setup] No se pudo verificar/crear admin user."
 
+# ── Seed datos del sistema (planes, etc) ────────────────────────────────────
+echo "[setup] Verificando seeds del sistema..."
+php artisan db:seed --class=DatabaseSeeder --force 2>&1 || echo "[setup] Seeds ya ejecutados."
+
 # ── Optimizaciones de producción ─────────────────────────────────────────────
 if [ "${APP_ENV}" = "production" ]; then
     echo "[setup] Aplicando optimizaciones de producción..."
