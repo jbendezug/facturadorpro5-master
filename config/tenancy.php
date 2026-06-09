@@ -227,7 +227,9 @@ return [
          */
 //        'tenant-seed-class' => false,
 //      eg an admin seeder under `app/Seeders/AdminSeeder.php`:
-        'tenant-seed-class' => TenancyDatabaseSeeder::class,
+        // Temporalmente deshabilitado por incompatibilidad de namespace con Laravel 10
+// (Database\Seeders\TenancyDatabaseSeeder no existe, la clase es \TenancyDatabaseSeeder)
+'tenant-seed-class' => false,
 
         /**
          * Automatically generate a tenant database based on the random id of the
