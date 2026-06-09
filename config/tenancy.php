@@ -214,7 +214,9 @@ return [
          * @warn this has to be an absolute path, feel free to use helper methods like
          * base_path() or database_path() to set this up.
          */
-        'tenant-migrations-path' => database_path('migrations/tenant'),
+        // Deshabilitado porque hyn lanza 'The --no-interaction option does not exist' con Laravel 10
+// Las migrations de tenants se ejecutan via tenancy:migrate manual o desde el entrypoint
+'tenant-migrations-path' => false,
 
         /**
          * The default Seeder class used on newly created databases and while
